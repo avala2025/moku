@@ -1,6 +1,6 @@
 {
   "name": "moku",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "MOKU: ხის სათამაშოების მაღაზია და მართვის სისტემა",
   "main": "server.js",
@@ -11,6 +11,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
   }
 }

@@ -42,3 +42,6 @@ img { max-width: 100%; height: auto; }
 .soon__mark { font-family: "Jost", sans-serif; font-weight: 400; font-size: clamp(36px, 9vw, 64px); letter-spacing: .46em; padding-left: .46em; }
 .soon__text { margin: 0; font-family: var(--display); font-size: 22px; }
 .soon__small { margin: 0; font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--ink-soft); }
+.soon__db { margin: 18px auto 0; font-size: 13px; padding: 6px 14px; border-radius: 14px; max-width: 34ch; border: 1px solid currentColor; }
+.soon__db--ok { color: #4f7d52; }
+.soon__db--bad { color: #b4533f; }
