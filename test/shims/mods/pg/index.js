@@ -10,7 +10,9 @@ function pgToSqlite(sql) {
     .replace(/\$(\d+)/g, "?$1");
 }
 class Pool {
-  constructor() { this.db = new DatabaseSync(process.env.TEST_SQLITE || ":memory:"); this.db.exec("PRAGMA foreign_keys = ON"); }
+  constructor() { this.db = new DatabaseSync(process.env.TEST_SQLITE || ":memory:"); this.db.exec("PRAGMA foreign_keys = ON");
+    // Postgres function used for phone search
+    this.db.function("regexp_replace", { deterministic: true }, (str, re, rep, flags) => String(str ?? "").replace(new RegExp(re, flags || ""), rep)); }
   on() {}
   async query(text, params = []) {
     const sql = pgToSqlite(text).trim(), args = params.map((v) => (v === true ? 1 : v === false ? 0 : v === undefined ? null : v));

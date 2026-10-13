@@ -69,8 +69,10 @@ async function state(u) {
   const couriers = (await db.all("select id, name from users where role = 'courier' and active = true order by name")).map((c) => num(c, "id"));
   const names = Object.fromEntries((await db.all("select id, name from users")).map((x) => [Number(x.id), x.name]));
   const orders = (await ordersFor(u)).map((o) => ({ ...o, courier: names[o.courier_id] || "", seller: names[o.created_by] || "" }));
-  if (u.role === "sales") products = products.map(({ id, name, price, left, hidden }) => ({ id, name, price, left, hidden }));
-  const out = { me: pub(u), products, couriers, orders, tomorrow: tbilisiDay(1) };
+  const thumbs = Object.fromEntries(shop.products.map((p) => [p.id, p.imgs[0] ? p.imgs[0][0] : ""]));
+  products = products.map((p) => ({ ...p, img: thumbs[p.id] || "" }));
+  if (u.role === "sales") products = products.map(({ id, name, price, left, hidden, img }) => ({ id, name, price, left, hidden, img }));
+  const out = { me: pub(u), products, couriers, orders, tomorrow: tbilisiDay(1), today: tbilisiDay(0), imgBase: storage.publicBase() };
   if (u.role === "admin") {
     out.users = (await db.all("select id, name, email, role, active from users order by role, name")).map((x) => num(x, "id"));
     out.emails = (await db.all("select * from emails order by id desc limit 60")).map((x) => num(x, "id", "order_id"));
@@ -177,6 +179,32 @@ module.exports = function register(app) {
     else if (u.role === "admin" && act === "return" && ["picked", "problem", "delivered"].includes(o.status)) await set("status = 'returned', done_at = $1", [iso()]);
     else fail(400, "ეს მოქმედება ამ სტატუსზე არ შეიძლება.");
     res.json(await state(u));
+  }));
+
+  // მყიდველის ძებნა ტელეფონით: ბოლო შეკვეთიდან სახელი და მისამართი (გაყიდვები და ადმინი)
+  app.get("/api/customer", h(async (req, res) => {
+    await need(req, "admin", "sales");
+    const digits = String(req.query.phone || "").replace(/\D/g, "");
+    if (digits.length < 6) return res.json({});
+    const rows = await db.all("select customer, phone, email, address, zone from orders where regexp_replace(phone, '[^0-9]', '', 'g') like $1 order by id desc limit 1", ["%" + digits.slice(-9)]);
+    res.json(rows[0] || {});
+  }));
+
+  // შეკვეთების გადმოწერა Excel-ისთვის (CSV): ადმინი
+  app.get("/api/orders.csv", h(async (req, res) => {
+    await need(req, "admin");
+    const names = Object.fromEntries((await db.all("select id, name from users")).map((x) => [Number(x.id), x.name]));
+    const orders = await db.all("select * from orders order by id desc limit 5000");
+    const items = await db.all("select order_id, name, qty, price from order_items order by id");
+    const by = {}; items.forEach((i) => (by[i.order_id] ||= []).push(`${i.name} × ${i.qty} (${i.price} ₾)`));
+    const ST = { new: "ახალი", assigned: "გაფორმებული", picked: "კურიერმა აიღო", problem: "ვერ ჩაბარდა", delivered: "ჩაბარებული", returned: "დაბრუნდა", cancelled: "გაუქმდა" };
+    const cell = (v) => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+    const head = ["№", "თარიღი", "სტატუსი", "მყიდველი", "ტელეფონი", "მეილი", "ზონა", "მისამართი", "სათამაშოები", "მიწოდება ₾", "სულ ₾", "მიტანის დღე", "კურიერი", "გააფორმა", "შენიშვნა"];
+    const lines = orders.map((o) => { const sum = items.filter((i) => Number(i.order_id) === Number(o.id)).reduce((a, i) => a + Number(i.qty) * Number(i.price), 0) + Number(o.fee);
+      return [o.id, String(o.created).slice(0, 16).replace("T", " "), ST[o.status] || o.status, o.customer, o.phone, o.email, ZONES[o.zone]?.[0] || o.zone, o.address, (by[o.id] || []).join("; "), o.fee, sum, o.delivery_date, names[o.courier_id] || "", names[o.created_by] || "", o.note].map(cell).join(";"); });
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="moku-orders-${tbilisiDay(0)}.csv"`);
+    res.send("\ufeff" + [head.map(cell).join(";"), ...lines].join("\r\n"));
   }));
 
   // მარაგი: მხოლოდ ადმინი წერს, რამდენი ცალი მიიღო

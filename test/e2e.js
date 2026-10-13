@@ -150,6 +150,12 @@ function client() {
     assert.ok(!(await anon("/sitemap.xml")).t.includes("/toy/train"), "hidden toy not in sitemap");
     r = await sales("/api/state"); assert.equal(r.j.products.find((p) => p.id === "music").price, 100, "staff price = 200 −50%");
 
+    r = await sales("/api/customer?phone=555112233"); assert.equal(r.j.customer, "მარი", "customer lookup by phone");
+    assert.equal((await sales("/api/customer?phone=123")).j.customer, undefined, "short phone: nothing");
+    r = await fetch(B + "/api/orders.csv", { headers: { cookie: adminCookie } }); assert.equal(r.status, 200); const csv = await r.text();
+    assert.ok(csv.includes("მარი") && csv.includes("ხელსაწყოების ყუთი × 2") && r.headers.get("content-disposition").includes("moku-orders"), "csv export");
+    assert.equal((await sales("/api/orders.csv")).s, 403, "sales cannot export");
+    r = await sales("/api/state"); assert.ok(r.j.today && r.j.products[0].img === "toolbox-1", "sales gets thumbs and today");
     assert.equal((await sales("/api/users", { name: "h", email: "h@h.ge", role: "admin", password: "12345678" })).s, 403);
     assert.equal((await sales("/api/stock/toolbox", { stock_in: 99 })).s, 403);
     r = await admin("/api/state"); await admin(`/api/users/${r.j.users.find((u) => u.email === "dato@moku.ge").id}`, { active: false });
