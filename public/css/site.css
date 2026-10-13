@@ -1,0 +1,44 @@
+/* MOKU: ბრენდის ფერები და შრიფტები. ყველა გვერდი ამ ცვლადებს იყენებს. */
+:root {
+  --chalk: #f2f0eb;    /* ფონი */
+  --paper: #fbfaf7;    /* ბარათები, ამოწეული ზედაპირი */
+  --ink: #1d2729;      /* ტექსტი */
+  --ink-soft: #5f6b6d; /* მეორეხარისხოვანი ტექსტი */
+  --line: #dcd8cf;     /* ხაზები */
+  --birch: #e9dfcd;    /* ფოტოს ფონები */
+  --mist: #d8e1e5;
+  --sage: #dbe1d2;
+  --blush: #eedcd5;
+  --blue: #56758a;     /* აქცენტი */
+  --oak: #b58b56;      /* პატარა დეტალები */
+
+  --display: "Noto Serif Georgian", Georgia, serif;
+  --body: "Jost", "Noto Sans Georgian", "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--chalk);
+  color: var(--ink);
+  font-family: var(--body);
+  font-weight: 300;
+  font-size: 16.5px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; height: auto; }
+
+/* დროებითი გვერდი */
+.soon {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 6px;
+  padding: 24px 16px;
+}
+.soon__mark { font-family: "Jost", sans-serif; font-weight: 400; font-size: clamp(36px, 9vw, 64px); letter-spacing: .46em; padding-left: .46em; }
+.soon__text { margin: 0; font-family: var(--display); font-size: 22px; }
+.soon__small { margin: 0; font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--ink-soft); }
