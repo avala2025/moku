@@ -33,8 +33,10 @@ function express() {
     next();
   };
   app.use = (a, b) => (typeof a === "function" ? stack.push({ prefix: "/", fn: a }) : stack.push({ prefix: a, fn: b }));
-  app.get = (route, fn) => stack.push({ method: "GET", route, fn });
-  app.post = (route, fn) => stack.push({ method: "POST", route, fn });
+  // a route may have several handlers (e.g. express.raw(), then the handler): chain them
+  const chain = (fns) => (req, res, next) => { let k = 0; const step = (err) => { if (err) return next(err); const f = fns[k++]; if (!f) return next(); try { const r = f(req, res, step); if (r && r.catch) r.catch(next); } catch (e) { next(e); } }; step(); };
+  app.get = (route, ...fns) => stack.push({ method: "GET", route, fn: chain(fns) });
+  app.post = (route, ...fns) => stack.push({ method: "POST", route, fn: chain(fns) });
   app.disable = app.set = () => {};
   app.listen = (port, cb) => http.createServer(app).listen(port, cb);
   return app;
@@ -43,10 +45,15 @@ express.json = () => (req, res, next) => {
   if (req.method === "GET" || !/json/.test(req.headers["content-type"] || "")) return next();
   let s = ""; req.on("data", (c) => (s += c)); req.on("end", () => { try { req.body = s ? JSON.parse(s) : {}; next(); } catch (e) { res.statusCode = 400; res.end("bad json"); } });
 };
-express.static = (dir) => (req, res, next) => {
+express.raw = (opts = {}) => (req, res, next) => {
+  const types = [].concat(opts.type || []), ct = String(req.headers["content-type"] || "").split(";")[0];
+  if (!types.includes(ct)) return next();
+  const parts = []; req.on("data", (c) => parts.push(c)); req.on("end", () => { req.body = Buffer.concat(parts); next(); });
+};
+express.static = (dir, opts = {}) => (req, res, next) => {
   if (req.method !== "GET") return next();
   const f = path.normalize(path.join(dir, decodeURIComponent(req.path)));
   if (!f.startsWith(dir + path.sep)) return next();
-  fs.stat(f, (e, st) => { if (e || !st.isFile()) return next(); res.sendFile(f); });
+  fs.stat(f, (e, st) => { if (e || !st.isFile()) return next(); res.setHeader("Cache-Control", "public, max-age=2592000"); if (opts.setHeaders) opts.setHeaders(res, f); res.sendFile(f); });
 };
 module.exports = express;

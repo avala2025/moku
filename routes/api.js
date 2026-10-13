@@ -1,5 +1,7 @@
 // მართვის სისტემის API: შესვლა, მარაგი, შეკვეთები, კურიერი, თანამშრომლები, წერილები, მაღაზიის შენახვა.
+const express = require("express");
 const db = require("../db");
+const storage = require("../lib/storage");
 const auth = require("../lib/auth");
 const { getShop, saveShop, nowPrice } = require("../lib/shop");
 const { mailSafe, mail, ready: mailReady, ZONES } = require("../lib/mail");
@@ -213,6 +215,23 @@ module.exports = function register(app) {
     res.json(await state(u));
   }));
 
+  // მაღაზიის მონაცემები პანელისთვის
+  app.get("/api/shop", h(async (req, res) => {
+    await need(req, "admin");
+    res.json({ data: await getShop(), imgBase: storage.publicBase(), uploads: storage.ready() });
+  }));
+
+  // ფოტოს ატვირთვა პანელიდან: ბრაუზერი უკვე შეამცირა, აქედან Supabase-ში მიდის
+  app.post("/api/images/:file", express.raw({ type: ["image/webp", "image/jpeg", "image/png"], limit: "8mb" }), h(async (req, res) => {
+    await need(req, "admin");
+    const file = req.params.file;
+    if (!/^u-[a-z0-9]{8,30}-(480|960|1400)\.webp$|^u-[a-z0-9]{8,30}-1200\.jpg$/.test(file)) fail(400, "ფაილის სახელი არასწორია.");
+    const type = String(req.headers["content-type"] || "").split(";")[0];
+    if (!["image/webp", "image/jpeg", "image/png"].includes(type) || !Buffer.isBuffer(req.body) || !req.body.length) fail(400, "ფაილი არ არის სურათი.");
+    try { await storage.upload(file, req.body, type); } catch (e) { fail(502, e.message); }
+    res.json({ ok: true });
+  }));
+
   // მაღაზიის ტექსტები, სათამაშოები, ფასები (საიტზე ჩაშენებული პანელიდან)
   app.post("/api/shop", h(async (req, res) => {
     await need(req, "admin");
@@ -221,5 +240,13 @@ module.exports = function register(app) {
     res.json({ ok: true });
   }));
 
-  return { me, ensureAdmin };
+  // Google-ისთვის: მარაგშია თუ არა. თუ მარაგი ჯერ არ ჩაგიწერია, არაფერს ვამბობთ.
+  async function availability(pid) {
+    const row = await db.one("select stock_in from stock where product_id = $1", [pid]);
+    if (!row) return undefined;
+    const shop = await getShop(), v = (await stockView(shop)).find((p) => p.id === pid);
+    return v ? v.left > 0 : undefined;
+  }
+
+  return { me, ensureAdmin, availability };
 };
