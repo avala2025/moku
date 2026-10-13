@@ -88,7 +88,7 @@ nav a:hover::after{transform:scaleX(1)}
 .band div{display:flex;width:max-content;animation:slide 46s linear infinite}
 .band span{font-family:var(--display);font-stretch:82%;font-size:clamp(24px,3vw,38px);font-weight:300;white-space:nowrap;padding-inline:26px;display:flex;align-items:center;gap:52px}
 .band span::after{content:"";width:9px;height:9px;border-radius:50%;border:1px solid var(--oak)}
-.band i{color:var(--blue);font-style:normal}:lang(en) .band i{font-style:italic}
+.band i{color:var(--blue);font-style:normal;font-weight:400}:lang(en) .band i{font-style:italic}
 @keyframes slide{to{transform:translateX(-50%)}}
 
 /* collection */
@@ -104,7 +104,7 @@ section{padding-block:clamp(64px,8.5vw,128px)}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:480px){.grid{grid-template-columns:1fr}}
 .card{background:none;border:0;padding:0;text-align:left;color:inherit;text-decoration:none;display:flex;flex-direction:column;gap:18px;min-width:0}
-.plinth{position:relative;aspect-ratio:4/5;border-radius:var(--r);overflow:hidden;background:var(--tint,var(--birch));isolation:isolate}
+.plinth{position:relative;aspect-ratio:1/1.08;border-radius:var(--r);overflow:hidden;background:var(--tint,var(--birch));isolation:isolate}
 .plinth img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 1.3s var(--ease),opacity .7s}
 .plinth img.cut{object-fit:contain;mix-blend-mode:multiply;padding:10%}
 .plinth img.alt{opacity:0}
@@ -281,3 +281,4 @@ dialog[open]{animation:rise .5s var(--ease)}
 .consent .btn{padding:10px 18px}
 .up{align-self:flex-start;cursor:pointer;padding:11px 20px}
 .pc{max-width:92px;text-align:center}
+.pp-shot .off{right:18px;top:18px}

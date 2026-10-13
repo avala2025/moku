@@ -13,7 +13,7 @@
    "nav3": "შეკვეთა",
    "heroEyebrow": "ხის სათამაშოები",
    "heroTitle": "თამაში, რომელიც *ხისგან* იწყება",
-   "heroText": "მოკუ აგროვებს ხის სათამაშოებს, რომლებსაც ბავშვი ხელით იკვლევს: ატრიალებს, აწყობს, აკაკუნებს. მშვიდი ფერები, ბუნებრივი მასალა, ეკრანის გარეშე.",
+   "heroText": "მოკუ აგროვებს ხის სათამაშოებს, რომლებსაც ბავშვი ხელით იკვლევს: ატრიალებს, აწყობს, აკაკუნებს. მშვიდი ფერები, ხე, რომელსაც ხელში თბილად იგრძნობ, და არცერთი ეკრანი.",
    "heroCta": "კოლექციის ნახვა",
    "heroLink": "რატომ ხე",
    "heroAlt": "ბავშვი თამაშობს ხის საჭიან დაფაზე",
@@ -34,7 +34,7 @@
    "boards": "დაფები და მაგიდები",
    "roomEyebrow": "ოთახში",
    "roomTitle": "სათამაშო, რომლის დამალვაც არ მოგინდება",
-   "roomText": "სამზარეულო-ურიკა ჯერ სიარულში ეხმარება, მერე კი სამზარეულოდ რჩება. თამაშის შემდეგაც ოთახში ისე დგას, როგორც ავეჯის ნაწილი.",
+   "roomText": "{name} ჯერ სიარულში ეხმარება, მერე კი სამზარეულოდ რჩება. თამაშის შემდეგაც ოთახში ისე დგას, როგორც ავეჯის ნაწილი.",
    "roomCta": "ურიკის ნახვა",
    "roomAlt": "ხის სასიარულო ურიკა ოთახში",
    "stEyebrow": "სახელის შესახებ",
@@ -80,7 +80,7 @@
    "nav3": "Order",
    "heroEyebrow": "Wooden toys",
    "heroTitle": "Play that starts with *wood*",
-   "heroText": "Moku gathers wooden toys a child explores by hand: turning, building, tapping. Calm colours, natural material, no screens.",
+   "heroText": "Moku gathers wooden toys a child explores by hand: turning, building, tapping. Calm colours, wood that feels warm in the hand, and no screens.",
    "heroCta": "See the collection",
    "heroLink": "Why wood",
    "heroAlt": "A child playing with a wooden steering board",
@@ -101,7 +101,7 @@
    "boards": "Boards and tables",
    "roomEyebrow": "In the room",
    "roomTitle": "A toy you will not want to put away",
-   "roomText": "The Kitchen Walker first helps with walking, then stays on as a kitchen. After play it stands in the room like a piece of furniture.",
+   "roomText": "{name} first helps with walking, then stays on as a kitchen. After play it stands in the room like a piece of furniture.",
    "roomCta": "See the walker",
    "roomAlt": "A wooden push walker in a room",
    "stEyebrow": "About the name",
@@ -219,7 +219,7 @@
   {
    "id": "train",
    "cat": "build",
-   "tint": "--sage",
+   "tint": "--birch",
    "imgs": [
     [
      "train",
@@ -285,7 +285,7 @@
   {
    "id": "switch",
    "cat": "boards",
-   "tint": "--mist",
+   "tint": "--birch",
    "imgs": [
     [
      "switch-1",
@@ -450,15 +450,15 @@
   {
    "id": "driver",
    "cat": "boards",
-   "tint": "--sage",
+   "tint": "--birch",
    "imgs": [
-    [
-     "driver",
-     0
-    ],
     [
      "driver-2",
      1
+    ],
+    [
+     "driver",
+     0
     ],
     [
      "driver-3",
@@ -488,5 +488,6 @@
  "analytics": {
   "ga": "",
   "pixel": ""
- }
+ },
+ "room": "walker"
 }

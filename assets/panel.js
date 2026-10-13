@@ -22,7 +22,7 @@
     heroEyebrow: "მთავარი ეკრანი: პატარა წარწერა", heroTitle: "მთავარი სათაური (*სიტყვა* გამოიყოფა ფერით)", heroText: "მთავარი ტექსტი", heroCta: "მთავარი ღილაკი", heroLink: "მთავარი ბმული", seal: "მრგვალი ბეჭდის წარწერა", band: "მოძრავი ზოლი (სიტყვები გამოყავი | ნიშნით)",
     n1t: "უპირატესობა 1: სათაური", n1: "უპირატესობა 1: ტექსტი", n2t: "უპირატესობა 2: სათაური", n2: "უპირატესობა 2: ტექსტი", n3t: "უპირატესობა 3: სათაური", n3: "უპირატესობა 3: ტექსტი",
     colEyebrow: "კოლექცია: პატარა წარწერა", colTitle: "კოლექცია: სათაური", all: "ფილტრი: ყველა", build: "კატეგორია 1", music: "კატეგორია 2", role: "კატეგორია 3", boards: "კატეგორია 4",
-    roomEyebrow: "ოთახის სექცია: პატარა წარწერა", roomTitle: "ოთახის სექცია: სათაური", roomText: "ოთახის სექცია: ტექსტი", roomCta: "ოთახის სექცია: ღილაკი",
+    roomEyebrow: "ოთახის სექცია: პატარა წარწერა", roomTitle: "ოთახის სექცია: სათაური", roomText: "ოთახის სექცია: ტექსტი ({name} = არჩეული სათამაშო)", roomCta: "ოთახის სექცია: ღილაკი",
     stEyebrow: "სახელის ისტორია: პატარა წარწერა", stTitle: "სახელის ისტორია: სათაური", st1: "სახელის ისტორია: აბზაცი 1", st2: "სახელის ისტორია: აბზაცი 2",
     orEyebrow: "შეკვეთა: პატარა წარწერა", orTitle: "შეკვეთა: სათაური", s1t: "ნაბიჯი 1: სათაური", s1: "ნაბიჯი 1: ტექსტი", s2t: "ნაბიჯი 2: სათაური", s2: "ნაბიჯი 2: ტექსტი", s3t: "ნაბიჯი 3: სათაური", s3: "ნაბიჯი 3: ტექსტი (მიწოდება)",
     soon: "ცარიელი კონტაქტის ტექსტი", phone: "სიტყვა „ტელეფონი“", foot: "ქვედა ხაზი", footText: "ქვედა ტექსტი", material: "სიტყვა „მასალა“", size: "სიტყვა „ზომა“", delivery: "სიტყვა „მიწოდება“", deliveryV: "მიწოდების პირობა სათამაშოს გვერდზე", price: "სიტყვა „ფასი“",
@@ -78,7 +78,7 @@
         '<h4>სტატისტიკა</h4><p class="a-note">ჩაირთვება მხოლოდ მაშინ, როცა მყიდველი თანხმობის ზოლზე „ვეთანხმები“-ს დააჭერს. ცარიელი ველი = გამორთულია.</p><div class="grid2">' +
         inp("analytics.ga", "Google Analytics (G-XXXXXXXXXX)") + inp("analytics.pixel", "Meta Pixel (მხოლოდ ციფრები)") + "</div>";
     } else {
-      B.innerHTML = Object.keys(W.T.ka).filter(function (k) { return DELIV.indexOf(k) < 0; }).map(function (k) { return pair(k, { area: /Text|st1|st2|^s\d$|footText|band|heroTitle|seoDesc|consentText/.test(k) ? 3 : 0 }); }).join("");
+      B.innerHTML = '<div class="pair"><b>ოთახის სექცია: რომელი სათამაშო იდგეს</b><label class="f" for="a-room"><span>სათამაშო</span><select id="a-room" data-p="room">' + W.products.map(function (q) { return '<option value="' + esc(q.id) + '" ' + (q.id === W.room ? "selected" : "") + ">" + esc(q.ka[0]) + "</option>"; }).join("") + '</select></label><small>ტექსტში {name} ამ სათამაშოს სახელით შეიცვლება.</small></div>' + Object.keys(W.T.ka).filter(function (k) { return DELIV.indexOf(k) < 0; }).map(function (k) { return pair(k, { area: /Text|st1|st2|^s\d$|footText|band|heroTitle|seoDesc|consentText/.test(k) ? 3 : 0 }); }).join("");
     }
   }
 
