@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MOKU · ხის სათამაშოები</title>
+<meta name="description" content="MOKU: ხის სათამაშოები ბავშვებისთვის. მიწოდება თბილისში მეორე დღეს.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&family=Noto+Sans+Georgian:wght@300;400;500&family=Noto+Serif+Georgian:wdth,wght@62.5..100,200..500&display=swap">
+<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<style id="css">
+/* Layout: a quiet gallery wall. Cut-out toys stand on tinted plinths, room photos hang in arches, type is light, narrow and wide-set. Single light look by choice: the product photos are shot on white. */
+:root{
+  color-scheme:light;
+  --chalk:#f2f0eb;      /* wall */
+  --paper:#fbfaf7;      /* raised surfaces */
+  --ink:#1d2729;        /* blue-green charcoal */
+  --ink-soft:#5f6b6d;
+  --line:#dcd8cf;
+  --birch:#e9dfcd;      /* plinth tints */
+  --mist:#d8e1e5;
+  --sage:#dbe1d2;
+  --blush:#eedcd5;
+  --blue:#56758a;       /* accent, from the toolbox strap */
+  --oak:#b58b56;        /* small marks */
+  --display:"Cormorant Garamond","Noto Serif Georgian",Georgia,serif;
+  --body:"Jost","Noto Sans Georgian","Helvetica Neue",Arial,sans-serif;
+  --gutter:clamp(16px,4.5vw,64px);
+  --r:26px;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--chalk);color:var(--ink);font-family:var(--body);font-weight:300;font-size:16.5px;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+::selection{background:var(--mist)}
+.wrap{max-width:1320px;margin-inline:auto;padding-inline:var(--gutter)}
+h1,h2,h3{font-family:var(--display);font-weight:300;font-stretch:82%;margin:0;text-wrap:balance;line-height:1.08;letter-spacing:-.005em}
+:lang(en) h1,:lang(en) h2,:lang(en) h3{font-weight:400;letter-spacing:-.01em}
+.eyebrow{display:inline-flex;align-items:center;gap:12px;font-size:11.5px;font-weight:400;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-soft)}
+.eyebrow::before{content:"";width:28px;height:1px;background:var(--oak)}
+.rv{transition:opacity 1s var(--ease),transform 1s var(--ease)}
+.rv.pre{opacity:.15;transform:translateY(26px)}
+
+/* top line + header */
+.topline{background:var(--ink);color:var(--paper);text-align:center;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;padding:9px var(--gutter)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--chalk) 86%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;padding-block:16px}
+.brand{display:inline-flex;align-items:center;gap:12px;text-decoration:none;font-family:"Jost",sans-serif;font-weight:400;font-size:21px;letter-spacing:.46em;justify-self:center;padding-left:.46em}
+.brand svg{width:24px;height:24px;margin-left:-.46em}
+nav{display:flex;gap:30px;font-size:13.5px;font-weight:400;letter-spacing:.04em}
+nav a{text-decoration:none;position:relative;padding-block:4px}
+nav a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--ink);transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease)}
+nav a:hover::after{transform:scaleX(1)}
+.lang{justify-self:end;display:flex;gap:4px;font-size:12px;font-weight:400;letter-spacing:.12em}
+.lang button{background:none;border:0;padding:6px 8px;color:var(--ink-soft);border-bottom:1px solid transparent}
+.lang button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+@media(max-width:760px){.bar{grid-template-columns:1fr auto}nav{display:none}.brand{justify-self:start}}
+
+/* hero */
+.hero{position:relative;display:grid;grid-template-columns:1fr 1.02fr;gap:clamp(24px,5vw,80px);align-items:center;padding-block:clamp(40px,6.5vw,96px) clamp(48px,7vw,104px)}
+.hero h1{font-size:clamp(44px,7.2vw,104px);margin-block:26px 26px}
+.hero h1 em{font-style:normal;position:relative;white-space:nowrap;color:var(--blue)}
+:lang(en) .hero h1 em{font-style:italic;font-weight:300}
+.hero h1 em svg{position:absolute;left:-2%;bottom:-.14em;width:104%;height:.22em;overflow:visible}
+.hero h1 em path{fill:none;stroke:var(--oak);stroke-width:2.2;stroke-linecap:round;stroke-dasharray:320;stroke-dashoffset:320;animation:draw 1.6s .7s var(--ease) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.hero p{max-width:42ch;color:var(--ink-soft);margin:0 0 34px;font-size:17.5px}
+.cta{display:flex;flex-wrap:wrap;align-items:center;gap:22px}
+.btn{display:inline-flex;align-items:center;gap:12px;padding:16px 30px;border-radius:99px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);text-decoration:none;font-size:13.5px;font-weight:400;letter-spacing:.08em;transition:background .35s,color .35s}
+.btn svg{width:16px;height:16px;transition:transform .45s var(--ease)}
+.btn:hover{background:transparent;color:var(--ink)}
+.btn:hover svg{transform:translateX(5px)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--ink);color:var(--paper)}
+.link{font-size:13.5px;font-weight:400;letter-spacing:.06em;text-decoration:none;border-bottom:1px solid var(--ink);padding-bottom:3px}
+.hero-art{position:relative;min-width:0;padding:0 4% 6% 10%}
+.sun{position:absolute;right:-6%;top:-5%;width:46%;aspect-ratio:1;border-radius:50%;background:var(--blush);z-index:0}
+.arch{position:relative;z-index:1;border-radius:999px 999px var(--r) var(--r);overflow:hidden;aspect-ratio:4/5.1;background:var(--birch)}
+.arch img{width:100%;height:100%;object-fit:cover;display:block;animation:settle 2.2s var(--ease) both}
+.float{position:absolute;z-index:2;left:0;bottom:0;width:41%;aspect-ratio:1;border-radius:var(--r);background:var(--mist);box-shadow:0 30px 60px -34px rgba(29,39,41,.55);animation:rise 1.4s .3s var(--ease) both}
+.float img{width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply;padding:9%}
+.seal{position:absolute;z-index:3;right:-2%;bottom:13%;width:clamp(96px,11vw,138px);aspect-ratio:1;border-radius:50%;background:var(--paper);display:grid;place-items:center;box-shadow:0 14px 34px -20px rgba(29,39,41,.5)}
+.seal svg.ring{position:absolute;inset:0;width:100%;height:100%;animation:spin 28s linear infinite}
+.seal text{font-family:var(--body);font-size:9.6px;letter-spacing:.2em;fill:var(--ink);text-transform:uppercase}
+.seal b{font-family:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;font-weight:300;font-size:clamp(26px,3vw,38px);color:var(--blue);line-height:1}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes settle{from{transform:scale(1.09)}to{transform:scale(1)}}
+@keyframes rise{from{transform:translateY(24px)}to{transform:none}}
+@media(max-width:860px){.hero{grid-template-columns:1fr}.hero-art{padding:0 0 8% 6%}.sun{right:-2%}.arch{aspect-ratio:1/1.05}}
+
+/* moving line */
+.band{border-block:1px solid var(--line);overflow:hidden;padding-block:22px;background:var(--paper)}
+.band div{display:flex;width:max-content;animation:slide 46s linear infinite}
+.band span{font-family:var(--display);font-stretch:82%;font-size:clamp(24px,3vw,38px);font-weight:300;white-space:nowrap;padding-inline:26px;display:flex;align-items:center;gap:52px}
+.band span::after{content:"";width:9px;height:9px;border-radius:50%;border:1px solid var(--oak)}
+.band i{color:var(--blue);font-style:normal}:lang(en) .band i{font-style:italic}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* collection */
+section{padding-block:clamp(64px,8.5vw,128px)}
+.head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:24px;margin-bottom:clamp(30px,4vw,52px)}
+.head h2{font-size:clamp(36px,5.2vw,72px);margin-top:16px}
+.head h2 sup{font-family:var(--body);font-size:.2em;letter-spacing:.14em;vertical-align:top;position:relative;top:.9em;margin-left:.5em;color:var(--ink-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:6px 22px}
+.chips button{background:none;border:0;border-bottom:1px solid transparent;padding:6px 0;font-size:13.5px;font-weight:400;letter-spacing:.05em;color:var(--ink-soft);transition:color .25s,border-color .25s}
+.chips button:hover{color:var(--ink)}
+.chips button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(30px,4vw,60px) clamp(14px,2vw,30px)}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.grid{grid-template-columns:1fr}}
+.card{background:none;border:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:18px;min-width:0}
+.plinth{position:relative;aspect-ratio:4/5;border-radius:var(--r);overflow:hidden;background:var(--tint,var(--birch));isolation:isolate}
+.plinth img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 1.3s var(--ease),opacity .7s}
+.plinth img.cut{object-fit:contain;mix-blend-mode:multiply;padding:10%}
+.plinth img.alt{opacity:0}
+.card:hover .plinth img{transform:scale(1.045)}
+.card:hover .plinth img.alt{opacity:1}
+.card:hover .plinth img.has-alt{opacity:0}
+.no{position:absolute;z-index:2;left:18px;top:16px;font-size:11px;font-weight:400;letter-spacing:.2em;color:var(--ink);background:color-mix(in srgb,var(--paper) 78%,transparent);backdrop-filter:blur(6px);padding:4px 10px;border-radius:99px}
+.peek{position:absolute;z-index:2;right:16px;bottom:16px;display:inline-flex;align-items:center;gap:8px;background:var(--paper);border-radius:99px;padding:10px 18px;font-size:12px;font-weight:400;letter-spacing:.1em;opacity:0;transform:translateY(10px);transition:opacity .45s,transform .45s var(--ease)}
+.peek svg{width:14px;height:14px}
+.card:hover .peek,.card:focus-visible .peek{opacity:1;transform:none}
+.meta{display:flex;flex-direction:column;gap:6px}.card.wide .meta{flex-direction:row;justify-content:space-between;align-items:baseline;gap:14px}
+.pr{display:flex;gap:12px;align-items:baseline;margin-top:-8px;font-variant-numeric:tabular-nums}.pr s{color:var(--ink-soft);font-size:14.5px}.pr b{font-weight:500;font-size:18px}
+.off{position:absolute;z-index:2;right:16px;top:16px;background:var(--ink);color:var(--paper);font-size:11px;font-weight:400;letter-spacing:.14em;padding:4px 11px;border-radius:99px}
+#p-price{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;font-variant-numeric:tabular-nums}#p-price s{color:var(--ink-soft)}#p-price b{font-weight:500;font-size:22px}#p-price i{font-style:normal;font-size:11px;letter-spacing:.14em;background:var(--ink);color:var(--paper);padding:3px 10px;border-radius:99px}
+.meta h3{font-size:clamp(23px,2.1vw,29px)}
+.meta span{font-size:11.5px;font-weight:400;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
+@media(min-width:901px){.card.wide{grid-column:span 2}.card.wide .plinth{aspect-ratio:auto;flex:1;min-height:0}.card.wide .plinth img.cut{padding:5%}}
+
+/* room feature */
+.room{background:var(--sage)}
+.room .wrap{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,6vw,100px);align-items:center}
+.room .frame{border-radius:999px 999px var(--r) var(--r);overflow:hidden;aspect-ratio:3/4;max-width:520px;width:100%;justify-self:center}
+.room img{width:100%;height:100%;object-fit:cover;display:block}
+.room h2{font-size:clamp(32px,4.4vw,60px);margin-block:18px 20px}
+.room p{max-width:46ch;margin:0 0 30px;color:color-mix(in srgb,var(--ink) 78%,var(--sage))}
+@media(max-width:820px){.room .wrap{grid-template-columns:1fr}}
+
+/* story */
+.story .wrap{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(28px,6vw,100px);align-items:center}
+.rings{position:relative;aspect-ratio:1;max-width:460px;width:100%;justify-self:center;display:grid;place-items:center}
+.rings svg{position:absolute;inset:0;width:100%;height:100%}
+.rings ellipse{fill:none;stroke:var(--oak);stroke-width:.5;opacity:.75}
+.rings .kanji{font-family:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;font-weight:300;font-size:clamp(84px,12vw,150px);line-height:1;color:var(--blue);background:var(--chalk);padding:.08em .16em;border-radius:50%}
+.rings small{position:absolute;bottom:6%;font-size:11.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-soft);background:var(--chalk);padding-inline:12px}
+.story h2{font-size:clamp(32px,4.4vw,60px);margin-block:18px 22px}
+.story p{max-width:54ch;color:var(--ink-soft);margin:0 0 16px}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:38px;border-top:1px solid var(--line);padding-top:24px}
+.facts div{min-width:0;font-size:13.5px;color:var(--ink-soft);line-height:1.5}
+.facts svg{width:30px;height:30px;stroke:var(--ink);fill:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;display:block;margin-bottom:12px}
+.facts b{display:block;font-family:var(--display);font-stretch:82%;font-weight:400;font-size:20px;color:var(--ink);margin-bottom:4px}
+@media(max-width:820px){.story .wrap{grid-template-columns:1fr}.rings{max-width:300px}}
+@media(max-width:520px){.facts{grid-template-columns:1fr}}
+
+/* order */
+.order{background:var(--paper);border-top:1px solid var(--line)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(18px,3vw,48px);list-style:none;padding:0;margin:0 0 clamp(36px,5vw,64px)}
+.steps li{min-width:0;border-top:1px solid var(--ink);padding-top:20px;display:grid;grid-template-columns:auto 1fr;gap:6px 22px;align-items:start}
+.steps i{grid-row:span 2;font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:300;font-size:clamp(52px,6vw,84px);line-height:.85;color:var(--blue)}
+.steps h3{font-size:27px;align-self:end}
+.steps p{margin:0;font-size:15px;color:var(--ink-soft)}
+@media(max-width:820px){.steps{grid-template-columns:1fr}}
+.contact{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--chalk)}
+.contact div{padding:24px 26px;min-width:0}
+.contact div+div{border-left:1px solid var(--line)}
+.contact b{display:block;font-size:11.5px;font-weight:400;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+.contact span{font-family:var(--display);font-stretch:82%;font-size:22px;user-select:all}
+@media(max-width:720px){.contact{grid-template-columns:1fr}.contact div+div{border-left:0;border-top:1px solid var(--line)}}
+
+/* footer */
+footer{background:var(--ink);color:var(--paper);padding-block:clamp(44px,6vw,80px) 26px}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:28px;align-items:end}
+.foot p{margin:0;max-width:34ch;color:color-mix(in srgb,var(--paper) 68%,var(--ink));font-size:15px}
+.foot nav{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.giant{font-family:"Jost",sans-serif;font-weight:300;font-size:clamp(72px,21vw,330px);letter-spacing:.2em;line-height:.9;text-align:center;margin:clamp(30px,5vw,70px) 0 18px;padding-left:.2em;color:color-mix(in srgb,var(--paper) 92%,var(--ink));white-space:nowrap}
+.fine{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;border-top:1px solid color-mix(in srgb,var(--paper) 20%,var(--ink));padding-top:18px;font-size:12px;letter-spacing:.1em;color:color-mix(in srgb,var(--paper) 60%,var(--ink))}
+
+/* product sheet */
+dialog{border:0;padding:0;background:var(--paper);color:var(--ink);border-radius:var(--r);width:min(1080px,calc(100% - 32px));max-height:calc(100dvh - 32px);overflow:auto}
+dialog::backdrop{background:rgba(29,39,41,.5);backdrop-filter:blur(5px)}
+dialog[open]{animation:rise .5s var(--ease)}
+.sheet{display:grid;grid-template-columns:1.08fr 1fr}
+.shot{position:sticky;top:0;align-self:start;aspect-ratio:1;background:var(--tint,var(--birch));min-width:0}
+.shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;animation:fade .5s}
+.shot img.cut{object-fit:contain;mix-blend-mode:multiply;padding:9%}
+@keyframes fade{from{opacity:.3}}
+.info{padding:clamp(26px,4vw,56px);display:flex;flex-direction:column;gap:18px;min-width:0}
+.info h2{font-size:clamp(34px,4vw,52px)}
+.info>p{margin:0;color:var(--ink-soft)}
+.info dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:10px 26px;font-size:14.5px;border-block:1px solid var(--line);padding-block:16px}
+.info dt{font-size:11.5px;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft);align-self:center}.info dd{margin:0}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.thumbs button{width:62px;height:62px;border-radius:14px;overflow:hidden;border:1px solid transparent;padding:0;background:var(--chalk);opacity:.6;transition:opacity .3s}
+.thumbs button[aria-pressed="true"],.thumbs button:hover{opacity:1;border-color:var(--ink)}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto;padding-top:6px}
+.x{position:absolute;top:14px;right:14px;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--paper);font-size:20px;font-weight:300;line-height:1;z-index:2;transition:transform .4s var(--ease)}
+.x:hover{transform:rotate(90deg)}
+.msg{font-size:14px;background:var(--chalk);border-radius:14px;padding:12px 16px;user-select:all}
+.toast{font-size:13px;color:var(--blue);min-height:1.4em}
+@media(max-width:780px){.sheet{grid-template-columns:1fr}.shot{min-height:0;aspect-ratio:1}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.hero h1 em path{stroke-dashoffset:0}.rv.pre{opacity:1;transform:none}}
+
+/* admin */
+#admin-open{position:fixed;z-index:30;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--paper);border:0;border-radius:99px;padding:13px 22px;font-size:13px;font-weight:400;letter-spacing:.08em;box-shadow:0 12px 30px -14px rgba(29,39,41,.7)}
+#admin{width:min(1040px,calc(100% - 24px));height:min(860px,calc(100dvh - 24px));max-height:none;overflow:hidden}
+#admin[open]{display:grid;grid-template-rows:auto auto 1fr auto}
+.a-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px clamp(18px,3vw,32px) 12px}
+.a-top h2{font-size:30px}
+#a-tabs{display:flex;gap:6px 22px;flex-wrap:wrap;padding:0 clamp(18px,3vw,32px);border-bottom:1px solid var(--line)}
+#a-tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 0;font-size:14px;font-weight:400;color:var(--ink-soft)}
+#a-tabs button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+#a-body{overflow:auto;padding:20px clamp(18px,3vw,32px);display:flex;flex-direction:column;gap:12px;min-height:0}
+.a-foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:14px clamp(18px,3vw,32px);border-top:1px solid var(--line);background:var(--chalk)}
+#a-status{flex:1 1 200px;font-size:13.5px;color:var(--blue);min-width:0}
+.a-foot .btn{padding:12px 22px}
+.a-note{margin:0;font-size:13.5px;color:var(--ink-soft)}
+#admin h4{font-family:var(--display);font-stretch:82%;font-weight:400;font-size:24px;margin:18px 0 0}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:12px;letter-spacing:.06em;color:var(--ink-soft)}
+.f input,.f textarea,.f select,.pt input{font:inherit;font-size:15px;letter-spacing:0;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-width:0}
+.f textarea{resize:vertical;line-height:1.5}
+.f input:focus,.f textarea:focus,.f select:focus,.pt input:focus{outline:2px solid var(--blue);outline-offset:1px}
+.grid2,.rb,.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pair{border-top:1px solid var(--line);padding-top:12px}
+.pair>b{grid-column:1/-1;font-weight:500;font-size:14px}
+.f.w{grid-column:1/-1}
+@media(max-width:640px){.grid2,.rb,.pair{grid-template-columns:1fr}}
+.row{border:1px solid var(--line);border-radius:18px;background:var(--chalk)}
+.row.off2{opacity:.6}
+.rh{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.th{width:52px;height:52px;border-radius:12px;overflow:hidden;flex:none}
+.th img{width:100%;height:100%;object-fit:cover;display:block}
+.nm{flex:1;min-width:0;background:none;border:0;text-align:left;padding:4px 0;display:flex;flex-direction:column}
+.nm b{font-weight:500;font-size:15.5px}.nm small{font-size:13px;color:var(--ink-soft)}
+.ic,.tx{background:var(--paper);border:1px solid var(--line);border-radius:10px;min-width:38px;height:38px;padding:0 10px;font-size:14px}
+.ic:disabled{opacity:.35}
+.rb{padding:6px 14px 16px;border-top:1px solid var(--line)}
+.ph{display:flex;flex-wrap:wrap;gap:8px}
+.pc{position:relative;display:flex;flex-direction:column;gap:4px;align-items:center;font-size:11px}
+.pc img{width:78px;height:78px;object-fit:cover;border-radius:12px;display:block;background:var(--paper)}
+.pc button{background:none;border:0;font-size:11px;text-decoration:underline;padding:0;color:var(--ink)}
+.pc button[aria-label]{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--paper);text-decoration:none;font-size:14px;line-height:1}
+.pc em{font-style:normal;color:var(--blue)}
+.danger{background:none;border:1px solid #b4533f;color:#b4533f;border-radius:99px;padding:9px 18px;font-size:13px;justify-self:start}
+.add{background:none;border:1px dashed var(--ink-soft);border-radius:18px;padding:16px;font-size:14px}
+.pt{width:100%;border-collapse:collapse;font-size:15px}
+.pt th{font-size:11.5px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);text-align:left;padding:8px 6px}
+.pt td{border-top:1px solid var(--line);padding:8px 6px;font-variant-numeric:tabular-nums}
+.pt input{max-width:120px}
+.contact a{text-decoration:none;border-bottom:1px solid var(--line)}
+</style>
+</head>
+<body>
+<template id="tpl">
+<div class="topline" data-t="top"></div>
+<header>
+  <div class="wrap bar">
+    <nav>
+      <a href="#collection" data-t="nav1"></a>
+      <a href="#story" data-t="nav2"></a>
+      <a href="#order" data-t="nav3"></a>
+    </nav>
+    <a class="brand" href="#top" aria-label="MOKU">
+      <svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><circle cx="13" cy="13" r="12"/><circle cx="12.4" cy="13.3" r="8"/><circle cx="11.9" cy="13.6" r="4.2"/><circle cx="11.6" cy="13.8" r="1" fill="currentColor"/></svg>
+      MOKU
+    </a>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" id="lang-ka" data-lang="ka">ქარ</button>
+      <button type="button" id="lang-en" data-lang="en">ENG</button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap hero">
+    <div>
+      <span class="eyebrow" data-t="heroEyebrow"></span>
+      <h1 data-h="heroTitle"></h1>
+      <p data-t="heroText"></p>
+      <div class="cta">
+        <a class="btn" href="#collection"><span data-t="heroCta"></span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 8h13M9.5 3.5 14 8l-4.5 4.5"/></svg></a>
+        <a class="link" href="#story" data-t="heroLink"></a>
+      </div>
+    </div>
+    <div class="hero-art">
+      <div class="sun"></div>
+      <div class="arch"><img src="img/driver.jpg" alt="" data-alt="heroAlt"></div>
+      <div class="float"><img src="img/table.jpg" alt=""></div>
+      <div class="seal" aria-hidden="true">
+        <svg class="ring" viewBox="0 0 100 100"><defs><path id="c" d="M50 50m-38 0a38 38 0 1 1 76 0a38 38 0 1 1-76 0"/></defs><text><textPath href="#c" data-t="seal"></textPath></text></svg>
+        <b>木</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="band" aria-hidden="true"><div id="band"></div></div>
+
+  <section id="collection">
+    <div class="wrap">
+      <div class="head rv">
+        <div><span class="eyebrow" data-t="colEyebrow"></span><h2><span data-t="colTitle"></span><sup id="count"></sup></h2></div>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section class="room">
+    <div class="wrap">
+      <div class="frame rv"><img src="img/walker.jpg" alt="" data-alt="roomAlt"></div>
+      <div class="rv">
+        <span class="eyebrow" data-t="roomEyebrow"></span>
+        <h2 data-t="roomTitle"></h2>
+        <p data-t="roomText"></p>
+        <button class="btn ghost" type="button" data-id="walker"><span data-t="roomCta"></span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 8h13M9.5 3.5 14 8l-4.5 4.5"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="story" id="story">
+    <div class="wrap">
+      <div class="rings rv" aria-hidden="true">
+        <svg viewBox="0 0 200 200" id="rings"></svg>
+        <span class="kanji">木</span><small>moku · wood · ხე</small>
+      </div>
+      <div class="rv">
+        <span class="eyebrow" data-t="stEyebrow"></span>
+        <h2 data-t="stTitle"></h2>
+        <p data-t="st1"></p>
+        <p data-t="st2"></p>
+        <div class="facts">
+          <div><svg viewBox="0 0 30 30"><path d="M15 27V12M15 12c0-5 3-8 9-9 0 6-3 9-9 9ZM15 17c0-4-2.500-6-8-7 0 5 3 7 8 7Z"/></svg><b data-t="n1t"></b><span data-t="n1"></span></div>
+          <div><svg viewBox="0 0 30 30"><path d="M5 25h20M8 25V14l7-6 7 6v11M12.500 25v-6h5v6"/></svg><b data-t="n2t"></b><span data-t="n2"></span></div>
+          <div><svg viewBox="0 0 30 30"><path d="M4 10l11-5l11 5v11l-11 5l-11-5Z"/><path d="M4 10l11 5l11-5M15 15v11"/></svg><b data-t="n3t"></b><span data-t="n3"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="order" id="order">
+    <div class="wrap">
+      <div class="head rv"><div><span class="eyebrow" data-t="orEyebrow"></span><h2 data-t="orTitle"></h2></div></div>
+      <ol class="steps rv">
+        <li><i>1</i><h3 data-t="s1t"></h3><p data-t="s1"></p></li>
+        <li><i>2</i><h3 data-t="s2t"></h3><p data-t="s2"></p></li>
+        <li><i>3</i><h3 data-t="s3t"></h3><p data-t="s3"></p></li>
+      </ol>
+      <div class="contact rv">
+        <div><b>WhatsApp</b><span data-c="wa"></span></div>
+        <div><b>Instagram</b><span data-c="ig"></span></div>
+        <div><b data-t="phone"></b><span data-c="phone"></span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <p data-t="footText"></p>
+      <nav>
+        <a href="#collection" data-t="nav1"></a>
+        <a href="#story" data-t="nav2"></a>
+        <a href="#order" data-t="nav3"></a>
+      </nav>
+    </div>
+    <div class="giant" aria-hidden="true">MOKU</div>
+    <div class="fine"><span>© 2026 MOKU</span><span data-t="foot"></span></div>
+  </div>
+</footer>
+
+<dialog id="sheet" aria-labelledby="p-name">
+  <button class="x" type="button" id="close" aria-label="Close">×</button>
+  <div class="sheet">
+    <div class="shot" id="p-shot"></div>
+    <div class="info">
+      <span class="eyebrow" id="p-cat"></span>
+      <h2 id="p-name"></h2>
+      <p id="p-desc"></p>
+      <div class="thumbs" id="p-thumbs"></div>
+      <dl>
+        <dt data-t="material"></dt><dd id="p-mat"></dd>
+        <dt data-t="size" class="sz"></dt><dd id="p-size" class="sz"></dd>
+        <dt data-t="price"></dt><dd id="p-price"></dd>
+        <dt data-t="delivery"></dt><dd data-t="deliveryV"></dd>
+      </dl>
+      <div class="msg" id="p-msg"></div>
+      <div class="actions">
+        <button class="btn" type="button" id="copy" data-t="copy"></button>
+        <a class="btn ghost" href="#order" id="how" data-t="how"></a>
+      </div>
+      <div class="toast" id="toast" role="status"></div>
+    </div>
+  </div>
+</dialog>
+
+
+<button type="button" id="admin-open" hidden>ადმინი</button>
+<dialog id="admin" aria-labelledby="a-title">
+  <div class="a-top"><h2 id="a-title">ადმინ პანელი</h2><a class="btn ghost" href="/admin" style="margin-left:auto;padding:10px 18px">შეკვეთები და მარაგი</a><button class="x" type="button" id="a-close" aria-label="დახურვა" style="position:static">×</button></div>
+  <div id="a-tabs" role="group" aria-label="განყოფილება">
+    <button type="button" data-tab="products">სათამაშოები</button>
+    <button type="button" data-tab="prices">ფასები და მიწოდება</button>
+    <button type="button" data-tab="contact">კონტაქტი</button>
+    <button type="button" data-tab="texts">ტექსტები</button>
+  </div>
+  <div id="a-body"></div>
+  <div class="a-foot">
+    <span id="a-status" role="status"></span>
+    <button class="btn ghost" type="button" id="a-reset">გაუქმება</button>
+    <button class="btn ghost" type="button" id="a-preview">გადახედვა</button>
+    <button class="btn" type="button" id="a-save">შენახვა</button>
+  </div>
+</dialog>
+</template>
+<div id="root"></div>
+<script id="data" type="application/json">__SHOP_DATA__</script>
+__ADMIN_FLAG__
+<script id="app">
+/* Everything the shop shows lives in the #data block. The admin panel edits a copy of it and saves by publishing this same page with the new data. */
+let D=JSON.parse(document.getElementById("data").textContent),W=null,dirty=false;
+const tpl=document.getElementById("tpl");
+document.getElementById("root").append(tpl.content.cloneNode(true));
+const U='<svg viewBox="0 0 300 20" preserveAspectRatio="none" aria-hidden="true"><path d="M3 13c48-9 96-10 147-6s98 5 147-3"/></svg>';
+const ARROW='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 8h13M9.5 3.5 14 8l-4.5 4.5"/></svg>';
+const CATS=["build","music","role","boards"],TINTS=["--birch","--mist","--sage","--blush"];
+let lang="ka",cat="all",cur=null;
+try{lang=localStorage.getItem("moku-lang")||"ka"}catch(e){}
+const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),src=n=>`img/${n}.jpg`;
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const t=k=>String(D.T[lang][k]??"").replace(/\{d\}/g,D.discount);
+const now=p=>Math.round(p.old*(1-D.discount/100));
+const price=p=>D.discount>0?`<s>${p.old} ₾</s><b>${now(p)} ₾</b>`:`<b>${p.old} ₾</b>`;
+const shown=()=>D.products.filter(p=>!p.hidden);
+/* growth rings: slightly off-centre, uneven spacing, like a real cross-section */
+$("#rings").innerHTML=Array.from({length:15},(_,i)=>{const r=96-i*4.6-(i%3)*1.1;return `<ellipse cx="${100-i*.5}" cy="${100+i*.35}" rx="${r}" ry="${r*(.965+(i%4)*.008)}" transform="rotate(${i*7} 100 100)"/>`}).join("");
+function text(){
+  document.documentElement.lang=lang;
+  $$("[data-t]").forEach(e=>e.textContent=t(e.dataset.t));
+  $$("[data-h]").forEach(e=>e.innerHTML=esc(t(e.dataset.h)).replace(/\*(.+?)\*/g,(_,w)=>`<em>${w}${U}</em>`));
+  $$("[data-alt]").forEach(e=>e.alt=t(e.dataset.alt));
+  $$(".lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===lang));
+  const b=t("band").split("|").map(w=>`<span>${esc(w.trim()).replace(/\*(.+?)\*/g,"<i>$1</i>")}</span>`).join("");$("#band").innerHTML=b+b+b+b;
+  $("#count").textContent=`(${shown().length})`;
+  $$("[data-c]").forEach(e=>{const k=e.dataset.c,v=(D.contacts[k]||"").trim();
+    if(!v){e.textContent=t("soon");return}
+    const href=k==="wa"?"https://wa.me/"+v.replace(/\D/g,""):k==="ig"?"https://instagram.com/"+v.replace(/^@/,""):"";
+    e.innerHTML=href?`<a href="${esc(href)}" target="_blank" rel="noopener">${esc(v)}</a>`:esc(v)});
+  chips();grid();if(cur)fill(cur,0);
+}
+function chips(){
+  $("#chips").innerHTML=["all",...CATS].map(c=>`<button type="button" data-c2="${c}" aria-pressed="${c===cat}">${esc(t(c))}</button>`).join("");
+}
+function grid(){
+  const all=shown(),list=all.filter(p=>cat==="all"||p.cat===cat),r=list.length%3;
+  $("#grid").innerHTML=list.map((p,i)=>{
+    const [a,b]=p.imgs,n=p[lang][0],wide=cat==="all"&&((r&&i===0)||(r===1&&i===list.length-1));
+    return `<button class="card${wide?" wide":""}" type="button" data-id="${esc(p.id)}">
+      <div class="plinth" style="--tint:var(${p.tint})">
+        <span class="no">N° ${String(all.indexOf(p)+1).padStart(2,"0")}</span>
+        ${a?`<img class="${a[1]?"cut":""} ${b?"has-alt":""}" src="${src(a[0])}" alt="${esc(n)}">`:""}
+        ${b?`<img class="alt" src="${src(b[0])}" alt="">`:""}
+        ${D.discount>0?`<span class="off">−${D.discount}%</span>`:""}
+        <span class="peek">${esc(t("view"))}${ARROW}</span>
+      </div>
+      <div class="meta"><h3>${esc(n)}</h3><span>${esc(t(p.cat))}</span></div><div class="pr">${price(p)}</div></button>`}).join("");
+}
+function fill(p,i){
+  cur=p;const [n,d,m,z]=p[lang],im=p.imgs[i];
+  $("#p-size").textContent=z||"";$$(".sz").forEach(e=>e.hidden=!z);
+  $("#p-shot").style.setProperty("--tint",`var(${p.tint})`);
+  $("#p-shot").innerHTML=im?`<img class="${im[1]?"cut":""}" src="${src(im[0])}" alt="${esc(n)}">`:"";
+  $("#p-cat").textContent=t(p.cat);$("#p-name").textContent=n;$("#p-desc").textContent=d;$("#p-mat").textContent=m;
+  $("#p-msg").textContent=t("orderT").replace("{n}",n).replace("{p}",now(p));
+  $("#p-price").innerHTML=price(p)+(D.discount>0?`<i>−${D.discount}%</i>`:"");$("#toast").textContent="";
+  $("#p-thumbs").innerHTML=p.imgs.length>1?p.imgs.map((x,k)=>`<button type="button" data-i="${k}" aria-pressed="${k===i}"><img src="${src(x[0])}" alt=""></button>`).join(""):"";
+}
+document.addEventListener("click",e=>{
+  if(e.target.closest("#admin"))return;
+  const l=e.target.closest("[data-lang]"),c=e.target.closest("[data-c2]"),k=e.target.closest("[data-id]"),x=e.target.closest("[data-i]");
+  if(l){lang=l.dataset.lang;try{localStorage.setItem("moku-lang",lang)}catch(e){}text()}
+  if(c){cat=c.dataset.c2;chips();grid()}
+  if(k){const p=D.products.find(p=>p.id===k.dataset.id);if(p){fill(p,0);$("#sheet").showModal()}}
+  if(x)fill(cur,+x.dataset.i);
+});
+$("#close").onclick=()=>$("#sheet").close();
+$("#how").onclick=()=>$("#sheet").close();
+$("#sheet").addEventListener("click",e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
+$("#sheet").addEventListener("close",()=>cur=null);
+$("#copy").onclick=()=>{
+  const m=$("#p-msg"),ok=()=>$("#toast").textContent=t("copied"),
+  no=()=>{getSelection().selectAllChildren(m);$("#toast").textContent=t("copyFail")};
+  try{navigator.clipboard.writeText(m.textContent).then(ok,no)}catch(e){no()}
+};
+text();
+/* sections ease in as they arrive; anything already on screen stays put */
+if("IntersectionObserver" in window){
+  const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.remove("pre");io.unobserve(x.target)}}),{rootMargin:"0px 0px -8% 0px"});
+  $$(".rv").forEach(el=>{if(el.getBoundingClientRect().top>innerHeight){el.classList.add("pre");io.observe(el)}});
+}
+
+/* ---------------- admin ---------------- */
+const A=$("#admin"),LBL={top:"ზედა ზოლი ({d} = ფასდაკლების %)",nav1:"მენიუ: კოლექცია",nav2:"მენიუ: ჩვენ შესახებ",nav3:"მენიუ: შეკვეთა",
+heroEyebrow:"მთავარი ეკრანი: პატარა წარწერა",heroTitle:"მთავარი სათაური (*სიტყვა* გამოიყოფა ფერით)",heroText:"მთავარი ტექსტი",heroCta:"მთავარი ღილაკი",heroLink:"მთავარი ბმული",seal:"მრგვალი ბეჭდის წარწერა",band:"მოძრავი ზოლი (სიტყვები გამოყავი | ნიშნით)",
+n1t:"უპირატესობა 1: სათაური",n1:"უპირატესობა 1: ტექსტი",n2t:"უპირატესობა 2: სათაური",n2:"უპირატესობა 2: ტექსტი",n3t:"უპირატესობა 3: სათაური",n3:"უპირატესობა 3: ტექსტი",
+colEyebrow:"კოლექცია: პატარა წარწერა",colTitle:"კოლექცია: სათაური",all:"ფილტრი: ყველა",build:"კატეგორია 1",music:"კატეგორია 2",role:"კატეგორია 3",boards:"კატეგორია 4",
+roomEyebrow:"ოთახის სექცია: პატარა წარწერა",roomTitle:"ოთახის სექცია: სათაური",roomText:"ოთახის სექცია: ტექსტი",roomCta:"ოთახის სექცია: ღილაკი",
+stEyebrow:"სახელის ისტორია: პატარა წარწერა",stTitle:"სახელის ისტორია: სათაური",st1:"სახელის ისტორია: აბზაცი 1",st2:"სახელის ისტორია: აბზაცი 2",
+orEyebrow:"შეკვეთა: პატარა წარწერა",orTitle:"შეკვეთა: სათაური",s1t:"ნაბიჯი 1: სათაური",s1:"ნაბიჯი 1: ტექსტი",s2t:"ნაბიჯი 2: სათაური",s2:"ნაბიჯი 2: ტექსტი",s3t:"ნაბიჯი 3: სათაური",s3:"ნაბიჯი 3: ტექსტი (მიწოდება)",
+soon:"ცარიელი კონტაქტის ტექსტი",phone:"სიტყვა „ტელეფონი“",foot:"ქვედა ხაზი",footText:"ქვედა ტექსტი",material:"სიტყვა „მასალა“",size:"სიტყვა „ზომა“",delivery:"სიტყვა „მიწოდება“",deliveryV:"მიწოდების პირობა პროდუქტის გვერდზე",price:"სიტყვა „ფასი“",
+copy:"ღილაკი: ტექსტის კოპირება",how:"ღილაკი: როგორ შევუკვეთო",copied:"შეტყობინება: დაკოპირდა",copyFail:"შეტყობინება: ვერ დაკოპირდა",view:"ღილაკი: ნახვა",orderT:"შეკვეთის ტექსტი ({n} = სახელი, {p} = ფასი)",heroAlt:"მთავარი ფოტოს აღწერა",roomAlt:"ოთახის ფოტოს აღწერა"};
+const DELIV=["top","deliveryV","s3","n3t","n3"];
+let tab="products",openId=null,delId=null;
+const setPath=(o,path,v)=>{const k=path.split("."),last=k.pop();k.reduce((a,x)=>a[x],o)[last]=v};
+const getPath=(o,path)=>path.split(".").reduce((a,x)=>a?.[x],o);
+const inp=(path,label,o={})=>{const v=getPath(W,path)??"",id="a-"+path.replace(/\./g,"-");
+  return `<label class="f${o.wide?" w":""}" for="${id}"><span>${esc(label)}</span>${o.area?`<textarea id="${id}" data-p="${path}" rows="${o.area}">${esc(v)}</textarea>`:`<input id="${id}" data-p="${path}" type="${o.num?"number":"text"}" ${o.num?'min="0" inputmode="numeric"':""} value="${esc(v)}">`}</label>`};
+const pair=(key,o={})=>`<div class="pair"><b>${esc(LBL[key]||key)}</b>${inp("T.ka."+key,"ქართულად",o)}${inp("T.en."+key,"English",o)}</div>`;
+function renderAdmin(){
+  $$("#a-tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tab===tab));
+  const B=$("#a-body");
+  if(tab==="products"){
+    B.innerHTML=`<p class="a-note">ისრებით შეცვალე რიგი. ახალი ფოტოების დამატება ჯერ მხოლოდ Claude-ის მეშვეობით ხდება: გაუგზავნე ფოტოები ჩატში.</p>`+
+    W.products.map((p,i)=>{const o=p.id===openId;return `<div class="row${p.hidden?" off2":""}">
+      <div class="rh"><span class="th" style="background:var(${p.tint})">${p.imgs[0]?`<img src="${src(p.imgs[0][0])}" alt="">`:""}</span>
+        <button type="button" class="nm" data-act="open" data-k="${i}"><b>${esc(p.ka[0]||"უსახელო")}</b><small>${p.old} ₾ → ${Math.round(p.old*(1-W.discount/100))} ₾${p.hidden?" · დამალულია":""}</small></button>
+        <button type="button" class="ic" data-act="up" data-k="${i}" aria-label="ზემოთ" ${i?"":"disabled"}>↑</button>
+        <button type="button" class="ic" data-act="down" data-k="${i}" aria-label="ქვემოთ" ${i<W.products.length-1?"":"disabled"}>↓</button>
+        <button type="button" class="tx" data-act="hide" data-k="${i}">${p.hidden?"ჩვენება":"დამალვა"}</button></div>
+      ${o?`<div class="rb">
+        ${inp(`products.${i}.ka.0`,"სახელი (ქართ.)")}${inp(`products.${i}.en.0`,"Name (Eng.)")}
+        ${inp(`products.${i}.ka.1`,"აღწერა (ქართ.)",{area:4})}${inp(`products.${i}.en.1`,"Description (Eng.)",{area:4})}
+        ${inp(`products.${i}.ka.2`,"მასალა (ქართ.)")}${inp(`products.${i}.en.2`,"Material (Eng.)")}
+        ${inp(`products.${i}.ka.3`,"ზომა (ქართ.)")}${inp(`products.${i}.en.3`,"Size (Eng.)")}
+        ${inp(`products.${i}.old`,"ფასი ფასდაკლებამდე, ₾",{num:1})}
+        <label class="f" for="a-cat-${i}"><span>კატეგორია</span><select id="a-cat-${i}" data-p="products.${i}.cat">${CATS.map(c=>`<option value="${c}" ${c===p.cat?"selected":""}>${esc(W.T.ka[c])}</option>`).join("")}</select></label>
+        <label class="f" for="a-tint-${i}"><span>ფონის ფერი</span><select id="a-tint-${i}" data-p="products.${i}.tint">${TINTS.map((c,k)=>`<option value="${c}" ${c===p.tint?"selected":""}>${["ხისფერი","ცისფერი","მწვანე","ვარდისფერი"][k]}</option>`).join("")}</select></label>
+        <div class="f w"><span>ფოტოები (პირველი მთავარია)</span><div class="ph">${p.imgs.map((x,k)=>`<span class="pc"><img src="${src(x[0])}" alt="">${k?`<button type="button" data-act="main" data-k="${i}" data-j="${k}">მთავარი</button>`:"<em>მთავარი</em>"}<button type="button" data-act="rmimg" data-k="${i}" data-j="${k}" aria-label="ფოტოს წაშლა">×</button></span>`).join("")||"<small>ფოტო ჯერ არ არის</small>"}</div></div>
+        <div class="f w"><button type="button" class="danger" data-act="del" data-k="${i}">${delId===p.id?"დააჭირე კიდევ ერთხელ წასაშლელად":"სათამაშოს წაშლა"}</button></div>
+      </div>`:""}</div>`}).join("")+`<button type="button" class="add" data-act="add">+ ახალი სათამაშო</button>`;
+  }else if(tab==="prices"){
+    B.innerHTML=`<div class="grid2">${inp("discount","ფასდაკლება, % (0 = ფასდაკლების გარეშე)",{num:1})}</div>
+    <table class="pt"><thead><tr><th>სათამაშო</th><th>ძველი ფასი, ₾</th><th>ახალი ფასი</th></tr></thead><tbody>${W.products.map((p,i)=>`<tr><td>${esc(p.ka[0])}</td><td><input id="a-old-${i}" data-p="products.${i}.old" type="number" min="0" inputmode="numeric" value="${p.old}" aria-label="ძველი ფასი"></td><td data-new="${i}">${Math.round(p.old*(1-W.discount/100))} ₾</td></tr>`).join("")}</tbody></table>
+    <h4>მიწოდება</h4>${DELIV.map(k=>pair(k,{area:2})).join("")}`;
+  }else if(tab==="contact"){
+    B.innerHTML=`<p class="a-note">ცარიელი ველი საიტზე ჩანს როგორც „მალე დაემატება“.</p><div class="grid2">${inp("contacts.wa","WhatsApp ნომერი (მაგ. +995 5XX XX XX XX)")}${inp("contacts.ig","Instagram (მაგ. @moku.ge)")}${inp("contacts.phone","ტელეფონი")}</div>`;
+  }else{
+    B.innerHTML=Object.keys(W.T.ka).filter(k=>!DELIV.includes(k)).map(k=>pair(k,{area:/Text|st1|st2|^s\d$|footText|band|heroTitle/.test(k)?3:0})).join("");
+  }
+}
+function openAdmin(){if(!W)W=structuredClone(D);delId=null;renderAdmin();$("#a-status").textContent=dirty?"შეუნახავი ცვლილებები გაქვს":"";A.showModal()}
+$("#admin-open").onclick=openAdmin;
+$("#a-tabs").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.tab;renderAdmin();$("#a-body").scrollTop=0}};
+A.addEventListener("input",e=>{const p=e.target.dataset.p;if(!p)return;
+  let v=e.target.value;if(e.target.type==="number")v=Math.max(0,Math.round(+v||0));
+  setPath(W,p,v);dirty=true;$("#a-status").textContent="შეუნახავი ცვლილებები გაქვს";
+  if(tab==="prices")$$("[data-new]").forEach(c=>c.textContent=Math.round(W.products[c.dataset.new].old*(1-W.discount/100))+" ₾")});
+A.addEventListener("change",e=>{if(e.target.dataset.p&&e.target.tagName==="SELECT"&&tab==="products")renderAdmin()});
+$("#a-body").addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;
+  const P=W.products,i=+b.dataset.k,j=+b.dataset.j,a=b.dataset.act;
+  if(a==="open"){openId=openId===P[i].id?null:P[i].id;delId=null;renderAdmin();return}
+  if(a==="up")[P[i-1],P[i]]=[P[i],P[i-1]];
+  if(a==="down")[P[i+1],P[i]]=[P[i],P[i+1]];
+  if(a==="hide")P[i].hidden=!P[i].hidden;
+  if(a==="main")P[i].imgs.unshift(P[i].imgs.splice(j,1)[0]);
+  if(a==="rmimg")P[i].imgs.splice(j,1);
+  if(a==="del"){if(delId!==P[i].id){delId=P[i].id;renderAdmin();return}P.splice(i,1);delId=null}
+  if(a==="add"){const id="p"+Date.now().toString(36);P.push({id,cat:"build",tint:"--birch",imgs:[],ka:["ახალი სათამაშო","","ხე",""],en:["New toy","","Wood",""],old:0,hidden:true});openId=id}
+  dirty=true;$("#a-status").textContent="შეუნახავი ცვლილებები გაქვს";renderAdmin()});
+$("#a-close").onclick=()=>A.close();
+$("#a-preview").onclick=()=>{D=structuredClone(W);text();A.close();$("#admin-open").textContent=dirty?"ადმინი · შეუნახავი":"ადმინი"};
+$("#a-reset").onclick=()=>{W=JSON.parse(document.getElementById("data").textContent);D=structuredClone(W);dirty=false;openId=delId=null;text();renderAdmin();$("#a-status").textContent="ცვლილებები გაუქმდა";$("#admin-open").textContent="ადმინი"};
+$("#a-save").onclick=async()=>{
+  const st=$("#a-status"),btn=$("#a-save");btn.disabled=true;st.textContent="ინახება…";
+  try{const r=await fetch("/api/shop",{method:"POST",headers:{"Content-Type":"application/json","X-Moku":"1"},credentials:"same-origin",body:JSON.stringify({data:W})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j.error||"ვერ შეინახა. სცადე ხელახლა.");
+    D=structuredClone(W);document.getElementById("data").textContent=JSON.stringify(W);text();dirty=false;st.textContent="შენახულია.";$("#admin-open").textContent="ადმინი"}
+  catch(e){st.textContent=e.message||"ვერ შეინახა. სცადე ხელახლა."}
+  btn.disabled=false};
+/* the admin button appears only for people who may edit this page */
+if(window.MOKU_ADMIN)$("#admin-open").hidden=false;
+</script>
+</body>
+</html>

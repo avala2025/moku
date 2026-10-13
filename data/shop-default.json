@@ -1,0 +1,472 @@
+{
+ "discount": 30,
+ "contacts": {
+  "wa": "",
+  "ig": "",
+  "phone": ""
+ },
+ "T": {
+  "ka": {
+   "top": "გახსნის ფასდაკლება −{d}% · მიწოდება თბილისში მეორე დღეს, 7 ₾",
+   "nav1": "კოლექცია",
+   "nav2": "ჩვენ შესახებ",
+   "nav3": "შეკვეთა",
+   "heroEyebrow": "ხის სათამაშოები",
+   "heroTitle": "თამაში, რომელიც *ხისგან* იწყება",
+   "heroText": "მოკუ აგროვებს ხის სათამაშოებს, რომლებსაც ბავშვი ხელით იკვლევს: ატრიალებს, აწყობს, აკაკუნებს. მშვიდი ფერები, ბუნებრივი მასალა, ეკრანის გარეშე.",
+   "heroCta": "კოლექციის ნახვა",
+   "heroLink": "რატომ ხე",
+   "heroAlt": "ბავშვი თამაშობს ხის საჭიან დაფაზე",
+   "seal": "ხის სათამაშოები · მოკუ · ხის სათამაშოები · მოკუ ·",
+   "band": "ხე | თამაში | *სიმშვიდე* | ხელით ნაკვლევი | ათი სათამაშო | *მოკუ*",
+   "n1t": "ხე",
+   "n1": "ყველა სათამაშოს საფუძველი ხეა",
+   "n2t": "ოთახისთვის",
+   "n2": "მშვიდი ფერები, რომლებიც ინტერიერს უხდება",
+   "n3t": "მეორე დღეს",
+   "n3": "თბილისში 7 ₾, რეგიონებში 15 ₾",
+   "colEyebrow": "პირველი კოლექცია",
+   "colTitle": "ათი სათამაშო",
+   "all": "ყველა",
+   "build": "აწყობა",
+   "music": "მუსიკა",
+   "role": "როლური თამაში",
+   "boards": "დაფები და მაგიდები",
+   "roomEyebrow": "ოთახში",
+   "roomTitle": "სათამაშო, რომლის დამალვაც არ მოგინდება",
+   "roomText": "პატარა შეფის ურიკა ჯერ სიარულში ეხმარება, მერე კი სამზარეულოდ რჩება. თამაშის შემდეგაც ოთახში ისე დგას, როგორც ავეჯის ნაწილი.",
+   "roomCta": "ურიკის ნახვა",
+   "roomAlt": "ხის სასიარულო ურიკა ოთახში",
+   "stEyebrow": "სახელის შესახებ",
+   "stTitle": "მოკუ იაპონურად ხეს ნიშნავს",
+   "st1": "ხე თბილია ხელში, აქვს წონა და ხმა. ხის კუბიკი მაგიდაზე სხვანაირად კაკუნებს, ვიდრე პლასტმასისა, და ბავშვი ამ განსხვავებას გრძნობს.",
+   "st2": "ამიტომ ვირჩევთ სათამაშოებს, სადაც მთავარი მასალა ხეა, ფერები კი მშვიდია და ოთახშიც ლამაზად დგას.",
+   "orEyebrow": "როგორ შევუკვეთო",
+   "orTitle": "სამი ნაბიჯი",
+   "s1t": "აირჩიე",
+   "s1": "გახსენი სათამაშოს გვერდი და დააკოპირე შეკვეთის ტექსტი.",
+   "s2t": "მოგვწერე",
+   "s2": "გამოგვიგზავნე ტექსტი. გიპასუხებთ ფასით და მარაგის შესახებ.",
+   "s3t": "მიიღე",
+   "s3": "თბილისში მოგიტანთ შეკვეთის მეორე დღეს, მიწოდება 7 ₾ ღირს. რეგიონებში მიწოდება 15 ₾ ღირს.",
+   "soon": "მალე დაემატება",
+   "phone": "ტელეფონი",
+   "foot": "ხის სათამაშოები ბავშვებისთვის",
+   "footText": "მოკუ. ხის სათამაშოები, რომლებსაც ბავშვი ხელით იკვლევს.",
+   "material": "მასალა",
+   "delivery": "მიწოდება",
+   "deliveryV": "თბილისში მეორე დღეს · 7 ₾. რეგიონებში · 15 ₾",
+   "size": "ზომა",
+   "price": "ფასი",
+   "copy": "შეკვეთის ტექსტის კოპირება",
+   "how": "როგორ შევუკვეთო",
+   "copied": "ტექსტი დაკოპირდა",
+   "copyFail": "მონიშნე ტექსტი ზემოთ და დააკოპირე",
+   "view": "ნახვა",
+   "orderT": "გამარჯობა! მინდა შევუკვეთო: {n}, {p} ₾ (MOKU)."
+  },
+  "en": {
+   "top": "Opening offer −{d}% · Next-day delivery in Tbilisi, 7 ₾",
+   "nav1": "Collection",
+   "nav2": "About",
+   "nav3": "Order",
+   "heroEyebrow": "Wooden toys",
+   "heroTitle": "Play that starts with *wood*",
+   "heroText": "Moku gathers wooden toys a child explores by hand: turning, building, tapping. Calm colours, natural material, no screens.",
+   "heroCta": "See the collection",
+   "heroLink": "Why wood",
+   "heroAlt": "A child playing with a wooden steering board",
+   "seal": "Wooden toys · Moku · Wooden toys · Moku · ",
+   "band": "Wood | Play | *Calm* | Explored by hand | Ten toys | *Moku*",
+   "n1t": "Wood",
+   "n1": "The base of every toy we carry",
+   "n2t": "For the room",
+   "n2": "Calm colours that sit well in an interior",
+   "n3t": "Next day",
+   "n3": "7 ₾ in Tbilisi, 15 ₾ to the regions",
+   "colEyebrow": "First collection",
+   "colTitle": "Ten toys",
+   "all": "All",
+   "build": "Building",
+   "music": "Music",
+   "role": "Pretend play",
+   "boards": "Boards and tables",
+   "roomEyebrow": "In the room",
+   "roomTitle": "A toy you will not want to put away",
+   "roomText": "The Little Chef Walker first helps with walking, then stays on as a kitchen. After play it stands in the room like a piece of furniture.",
+   "roomCta": "See the walker",
+   "roomAlt": "A wooden push walker in a room",
+   "stEyebrow": "About the name",
+   "stTitle": "Moku is Japanese for wood",
+   "st1": "Wood is warm in the hand. It has weight and a sound. A wooden block knocks on a table differently from a plastic one, and a child notices.",
+   "st2": "So we choose toys where wood is the main material and the colours are calm enough to live in the room.",
+   "orEyebrow": "How to order",
+   "orTitle": "Three steps",
+   "s1t": "Choose",
+   "s1": "Open a toy and copy the order text.",
+   "s2t": "Write to us",
+   "s2": "Send us the text. We reply with the price and availability.",
+   "s3t": "Receive",
+   "s3": "We deliver in Tbilisi the day after you order for 7 ₾. Delivery to the regions costs 15 ₾.",
+   "soon": "Coming soon",
+   "phone": "Phone",
+   "foot": "Wooden toys for children",
+   "footText": "Moku. Wooden toys a child explores by hand.",
+   "material": "Material",
+   "delivery": "Delivery",
+   "deliveryV": "Next day in Tbilisi · 7 ₾. Regions · 15 ₾",
+   "size": "Size",
+   "price": "Price",
+   "copy": "Copy order text",
+   "how": "How to order",
+   "copied": "Text copied",
+   "copyFail": "Select the text above and copy it",
+   "view": "View",
+   "orderT": "Hello! I would like to order: {n}, {p} ₾ (MOKU)."
+  }
+ },
+ "products": [
+  {
+   "id": "toolbox",
+   "cat": "build",
+   "tint": "--birch",
+   "imgs": [
+    [
+     "toolbox-1",
+     1
+    ],
+    [
+     "toolbox-2",
+     0
+    ],
+    [
+     "toolbox-3",
+     0
+    ],
+    [
+     "toolbox-4",
+     0
+    ],
+    [
+     "toolbox-5",
+     0
+    ]
+   ],
+   "ka": [
+    "ოსტატის ყუთი",
+    "ხის ყუთი ჩაქუჩით, ქანჩის გასაღებით, სახაზავით და სათამაშო ბურღით. ხრახნები და ფირფიტები ერთმანეთს უერთდება, ასე რომ ბავშვი თავად აწყობს მანქანას, თვითმფრინავს ან რასაც მოიფიქრებს.",
+    "ხე; ბურღი და ხრახნები პლასტმასისაა",
+    ""
+   ],
+   "en": [
+    "Maker's Toolbox",
+    "A wooden case with a hammer, wrench, ruler and a toy drill. Bolts and plates join together, so a child builds a car, a plane or anything they think up.",
+    "Wood; plastic drill and bolts",
+    ""
+   ],
+   "old": 127,
+   "hidden": false
+  },
+  {
+   "id": "music",
+   "cat": "music",
+   "tint": "--mist",
+   "imgs": [
+    [
+     "music",
+     1
+    ],
+    [
+     "music-2",
+     0
+    ],
+    [
+     "music-3",
+     0
+    ]
+   ],
+   "ka": [
+    "პატარა ორკესტრი",
+    "ერთ მაგიდაზე ორი დოლი, ქსილოფონი, თეფში, ზარი და ზანზალაკებია. ჯოხები თავის ბუდეებში ინახება.",
+    "ხე; ლითონის დეტალები",
+    ""
+   ],
+   "en": [
+    "Little Orchestra",
+    "Two drums, a xylophone, a cymbal, a bell and chimes on one table. The sticks rest in their own holders.",
+    "Wood; metal parts",
+    ""
+   ],
+   "old": 156,
+   "hidden": false
+  },
+  {
+   "id": "train",
+   "cat": "build",
+   "tint": "--sage",
+   "imgs": [
+    [
+     "train",
+     1
+    ],
+    [
+     "train-2",
+     0
+    ],
+    [
+     "train-3",
+     0
+    ],
+    [
+     "train-4",
+     0
+    ]
+   ],
+   "ka": [
+    "მთის რკინიგზა",
+    "ხის ლიანდაგი ორ დონეზე, ხიდით, გვირაბით და მატარებლით. ნაწილები სხვადასხვანაირად ეწყობა, ასე რომ მარშრუტი ყოველ ჯერზე ახალია.",
+    "ხის ლიანდაგი; ხიდი და საყრდენები პლასტმასისაა",
+    ""
+   ],
+   "en": [
+    "Mountain Railway",
+    "A two-level wooden track with a bridge, a tunnel and a train. The pieces fit together in different ways, so the route changes every time.",
+    "Wooden track; plastic bridge and supports",
+    ""
+   ],
+   "old": 127,
+   "hidden": false
+  },
+  {
+   "id": "walker",
+   "cat": "role",
+   "tint": "--birch",
+   "imgs": [
+    [
+     "walker-2",
+     0
+    ],
+    [
+     "walker",
+     0
+    ]
+   ],
+   "ka": [
+    "პატარა შეფის ურიკა",
+    "სასიარულო ურიკა, რომელიც თან სამზარეულოა: ქვაბი, ტაფა, ღუმელი და გვერდებზე სათამაშო პანელები.",
+    "ხე",
+    "45.5 × 35 × 31 სმ"
+   ],
+   "en": [
+    "Little Chef Walker",
+    "A push walker that is also a kitchen: a pot, a pan, an oven and activity panels on the sides.",
+    "Wood",
+    "45.5 × 35 × 31 cm"
+   ],
+   "old": 327,
+   "hidden": false
+  },
+  {
+   "id": "switch",
+   "cat": "boards",
+   "tint": "--mist",
+   "imgs": [
+    [
+     "switch-1",
+     0
+    ],
+    [
+     "switch-2",
+     0
+    ]
+   ],
+   "ka": [
+    "ჩამრთველების დაფა",
+    "ნამდვილი ჩამრთველები, ღილაკები, გასაღები და ფერადი ნათურები ხის დაფაზე. არის ორ ზომაში.",
+    "ხე; ნათურები და ჩამრთველები",
+    ""
+   ],
+   "en": [
+    "Switch Board",
+    "Real switches, buttons, a key and coloured lights on a wooden board. Comes in two sizes.",
+    "Wood; lights and switches",
+    ""
+   ],
+   "old": 70,
+   "hidden": false
+  },
+  {
+   "id": "vanity",
+   "cat": "role",
+   "tint": "--blush",
+   "imgs": [
+    [
+     "vanity",
+     1
+    ],
+    [
+     "vanity-2",
+     0
+    ],
+    [
+     "vanity-3",
+     0
+    ]
+   ],
+   "ka": [
+    "სარკის მაგიდა",
+    "მაგიდა სარკით და ხის აქსესუარებით: ფენი, სავარცხელი, სუნამო და ფრჩხილის ლაქი.",
+    "ხე",
+    "დაახლ. 30.5 × 21 × 21 სმ"
+   ],
+   "en": [
+    "Vanity Table",
+    "A table with a mirror and wooden accessories: a hairdryer, a comb, perfume and nail polish.",
+    "Wood",
+    "approx. 30.5 × 21 × 21 cm"
+   ],
+   "old": 227,
+   "hidden": false
+  },
+  {
+   "id": "vet",
+   "cat": "role",
+   "tint": "--sage",
+   "imgs": [
+    [
+     "vet",
+     1
+    ],
+    [
+     "vet-2",
+     0
+    ],
+    [
+     "vet-3",
+     0
+    ]
+   ],
+   "ka": [
+    "პატარა ვეტერინარი",
+    "ხის სახლი სახელურით, რბილი ძაღლი და ექიმის ხელსაწყოები: სტეტოსკოპი, შპრიცი, თერმომეტრი და მაკრატელი.",
+    "ხე; რბილი სათამაშო ძაღლი",
+    ""
+   ],
+   "en": [
+    "Little Vet",
+    "A wooden carrier, a soft dog and a doctor's kit: stethoscope, syringe, thermometer and scissors.",
+    "Wood; soft toy dog",
+    ""
+   ],
+   "old": 164,
+   "hidden": false
+  },
+  {
+   "id": "table",
+   "cat": "boards",
+   "tint": "--birch",
+   "imgs": [
+    [
+     "table",
+     1
+    ],
+    [
+     "table-2",
+     0
+    ],
+    [
+     "table-3",
+     0
+    ]
+   ],
+   "ka": [
+    "აღმოჩენების მაგიდა",
+    "ნახევარმთვარის ფორმის მაგიდა მძივების ლაბირინთით, კბილანებით, ფიგურების დასაწყობით, ქსილოფონით და სტაფილოების ბოსტნით.",
+    "ხე",
+    ""
+   ],
+   "en": [
+    "Discovery Table",
+    "A crescent table with a bead maze, gears, shape stackers, a xylophone and a carrot patch.",
+    "Wood",
+    ""
+   ],
+   "old": 313,
+   "hidden": false
+  },
+  {
+   "id": "tap",
+   "cat": "music",
+   "tint": "--blush",
+   "imgs": [
+    [
+     "tap",
+     1
+    ],
+    [
+     "tap-2",
+     0
+    ],
+    [
+     "tap-3",
+     0
+    ],
+    [
+     "tap-4",
+     0
+    ]
+   ],
+   "ka": [
+    "ჩაქუჩი და ქსილოფონი",
+    "ერთ ყუთში სამი თამაშია: ფიგურების ჩარტყმა ჩაქუჩით, ქსილოფონი და თევზაობა ანკესით.",
+    "ხე",
+    ""
+   ],
+   "en": [
+    "Tap & Tune",
+    "Three games in one box: tapping the figures with a mallet, a xylophone and fishing with a rod.",
+    "Wood",
+    ""
+   ],
+   "old": 113,
+   "hidden": false
+  },
+  {
+   "id": "driver",
+   "cat": "boards",
+   "tint": "--sage",
+   "imgs": [
+    [
+     "driver",
+     0
+    ],
+    [
+     "driver-2",
+     1
+    ],
+    [
+     "driver-3",
+     0
+    ],
+    [
+     "driver-4",
+     0
+    ]
+   ],
+   "ka": [
+    "პატარა მძღოლი",
+    "საჭე, სიჩქარის გადამრთველი, მაჩვენებლები, ნათურები და ღილაკები ერთ ხის დაფაზე.",
+    "ხე; ნათურები და ჩამრთველები",
+    ""
+   ],
+   "en": [
+    "Little Driver",
+    "A steering wheel, gear stick, dials, lights and buttons on one wooden board.",
+    "Wood; lights and switches",
+    ""
+   ],
+   "old": 227,
+   "hidden": false
+  }
+ ]
+}
