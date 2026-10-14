@@ -283,32 +283,32 @@
    "hidden": false
   },
   {
-   "id": "switch",
+   "id": "radio",
    "cat": "boards",
    "tint": "--birch",
    "imgs": [
     [
-     "switch-1",
+     "radio",
      0
     ],
     [
-     "switch-2",
+     "radio-2",
      0
     ]
    ],
    "ka": [
-    "ჩამრთველების დაფა",
-    "ნამდვილი ჩამრთველები, ღილაკები, გასაღები და ფერადი ნათურები ხის დაფაზე. არის ორ ზომაში.",
-    "ხე; ნათურები და ჩამრთველები",
+    "მაგნიტოფონის დაფა",
+    "ძველი მაგნიტოფონის მსგავსი ხის დაფა: ჩამრთველები, ღილაკები, სახელურები, ნათურები, ხმის ჩამწერი, 5 სიმღერა გადასართავად, მძივების ლაბირინთი და დახატული პიანინოს კლავიშები. აქვს ტარების სახელური.",
+    "ხე; ნათურები და ღილაკები",
     ""
    ],
    "en": [
-    "Switch Board",
-    "Real switches, buttons, a key and coloured lights on a wooden board. Comes in two sizes.",
-    "Wood; lights and switches",
+    "Tape Recorder Busy Board",
+    "A wooden board styled like an old tape recorder: switches, buttons, knobs, lights, a voice recorder, 5 songs to switch between, a bead maze and printed piano keys. Has a carrying handle.",
+    "Wood; lights and buttons",
     ""
    ],
-   "old": 70,
+   "old": 90,
    "hidden": false
   },
   {

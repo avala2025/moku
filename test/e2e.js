@@ -59,7 +59,7 @@ function client() {
     assert.ok(!r.t.includes("/a/panel.js"), "no admin panel for visitors");
     r = await anon("/en"); assert.ok(r.t.includes('lang="en"') && r.t.includes("Wooden Tool Box") && r.t.includes('href="/en/toy/toolbox"'), "English home");
     r = await anon("/toy/toolbox"); assert.equal(r.s, 200);
-    assert.ok(r.t.includes("<h1>ხელსაწყოების ყუთი</h1>") && r.t.includes('"@type":"Product"') && r.t.includes('"price":"89"') && r.t.includes('"priceCurrency":"GEL"') && !r.t.includes("availability"), "toy page with product data, no stock claim yet");
+    assert.ok(r.t.includes("<h1>ხელსაწყოების ყუთი</h1>") && r.t.includes('"@type":"Product"') && r.t.includes('"price":"89"') && r.t.includes('"priceCurrency":"GEL"') && r.t.includes("schema.org/InStock"), "toy page with product data, in stock from initial stock");
     assert.ok(r.t.includes('og:image" content="') && r.t.includes("/img/toolbox-1.jpg"), "share image");
     assert.equal((await anon("/toy/nothing")).s, 404); assert.equal((await anon("/nowhere")).s, 404);
     r = await fetch(B + "/", { headers: { "accept-encoding": "gzip" } }); assert.equal(r.headers.get("content-encoding"), "gzip", "pages are compressed");
