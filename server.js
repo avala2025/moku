@@ -28,7 +28,7 @@ app.use(express.static(path.join(__dirname, "public"), {
   setHeaders: (res, file) => { if (file.includes(path.sep + "admin" + path.sep)) res.setHeader("Cache-Control", "no-cache"); },
 }));
 
-const { me, ensureAdmin, availability } = registerApi(app);
+const { me, ensureAdmin, availability, can } = registerApi(app);
 
 // საიტის მისამართი (Google-ისთვის და გაზიარებისთვის): APP_URL, ან თუ არ არის, მოთხოვნიდან
 const baseUrl = (req) => (process.env.APP_URL || `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`).replace(/\/$/, "");
@@ -38,7 +38,7 @@ async function page(req, res, L, id) {
   if (!status.ok) return sendText(req, res, `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MOKU</title><body style="font-family:Arial,sans-serif;display:grid;place-content:center;min-height:90vh;text-align:center;background:#f2f0eb;color:#1d2729"><h1 style="letter-spacing:.4em;font-weight:400">MOKU</h1><p style="color:#b4533f">ბაზა: ${status.reason}</p></body>`, "text/html; charset=utf-8", "no-store", 503);
   try {
     const shop = await getShop(), base = baseUrl(req);
-    const user = await me(req).catch(() => null), admin = !!(user && user.role === "admin");
+    const user = await me(req).catch(() => null), admin = !!(user && can(user, "site_edit")); // საიტის პანელი: "საიტის რედაქტირების" უფლებით
     if (id === undefined) return sendText(req, res, render.homePage({ shop, L, base, admin, assets: ASSETS }), "text/html; charset=utf-8");
     const p = shop.products.find((x) => x.id === id && (!x.hidden || admin));
     if (!p) return sendText(req, res, render.notFound({ shop, L, base, assets: ASSETS }), "text/html; charset=utf-8", "no-cache", 404);

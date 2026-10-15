@@ -76,8 +76,13 @@ function client() {
     assert.equal(r.s, 200); assert.equal(r.j.products.length, 10); assert.equal(r.j.products[0].price, 89, "127 −30% = 89"); assert.ok(r.j.mailReady);
     assert.ok((await admin("/")).t.includes("/a/panel.js"), "admin gets the panel on the shop");
 
-    for (const [n, e, ro] of [["ნინო", "nino@moku.ge", "sales"], ["გიო", "gio@moku.ge", "sales"], ["ლევანი", "levan@moku.ge", "courier"], ["დათო", "dato@moku.ge", "courier"]])
-      assert.equal((await admin("/api/users", { name: n, email: e, role: ro, password: "pass12345" })).s, 200);
+    // ნინო: თავისი შეკვეთები + კურიერის დანიშვნა; გიო: მხოლოდ გაფორმება (მზა ნაკრების გარეშე); კურიერები: მზა ნაკრები
+    for (const [n, e, ro, perms] of [["ნინო", "nino@moku.ge", "sales", ["order_create", "orders_assign", "stock_view"]], ["გიო", "gio@moku.ge", "sales", ["order_create", "stock_view"]], ["ლევანი", "levan@moku.ge", "courier"], ["დათო", "dato@moku.ge", "courier"]])
+      assert.equal((await admin("/api/users", { name: n, email: e, role: ro, password: "pass12345", perms })).s, 200);
+    r = await admin("/api/state"); assert.deepEqual(r.j.users.find((u) => u.name === "გიო").perms, ["order_create", "stock_view"], "perms saved as given");
+    assert.deepEqual(r.j.users.find((u) => u.name === "დათო").perms, ["courier"], "courier preset");
+    assert.ok(r.j.me.perms.includes("users") && r.j.me.perms.includes("site_edit") && !r.j.me.perms.includes("courier"), "admin has every permission except courier mode");
+    assert.ok(!r.j.couriers.some((c) => c.name === "ადმინი"), "admin is not in the courier list");
     assert.equal((await admin("/api/users", { name: "x", email: "nino@moku.ge", role: "sales", password: "pass12345" })).s, 400, "duplicate e-mail");
     r = await admin("/api/stock/toolbox", { stock_in: 3 }); assert.equal(r.j.products.find((p) => p.id === "toolbox").left, 3);
     await admin("/api/stock/music", { stock_in: 5 });
@@ -101,16 +106,27 @@ function client() {
     assert.ok(mails.find((m) => m.to === "levan@moku.ge").body.includes("https://moku.ge/admin"), "courier mail links to the profile");
 
     assert.equal((await sales2("/api/state")).j.orders.length, 0, "other seller does not see it");
-    assert.equal((await sales2(`/api/orders/${oid}/cancel`, {})).s, 404);
-    r = await c2("/api/state"); assert.equal(r.j.orders.length, 0, "other courier sees nothing"); assert.ok(!r.j.products && !r.j.users);
+    assert.equal((await sales2(`/api/orders/${oid}/cancel`, {})).s, 404, "not his order");
+    assert.equal((await sales(`/api/orders/${oid}/return`, {})).s, 400, "own order, has assign permission, but wrong status");
+    
+    r = await c2("/api/state"); assert.equal(r.j.deliveries.length, 0, "other courier sees nothing"); assert.ok(!r.j.products && !r.j.users && !r.j.orders);
     assert.equal((await c2(`/api/orders/${oid}/pick`, {})).s, 404, "other courier cannot act");
-    r = await c1("/api/state"); assert.equal(r.j.orders.length, 1); assert.equal(r.j.orders[0].collect, 294);
-    assert.ok(r.j.orders[0].items[0].price === undefined && r.j.orders[0].email === undefined, "courier sees no prices and no customer e-mail");
+    r = await c1("/api/state"); assert.equal(r.j.deliveries.length, 1); assert.equal(r.j.deliveries[0].collect, 294);
+    assert.ok(r.j.deliveries[0].items[0].price === undefined && r.j.deliveries[0].email === undefined, "courier sees no prices and no customer e-mail");
     assert.equal((await c1(`/api/orders/${oid}/deliver`, {})).s, 400, "cannot deliver before pick-up");
     assert.equal((await c1(`/api/orders/${oid}/pick`, {})).s, 200); await wait(400);
     assert.equal(mails.length, 3); assert.ok(mails[2].subject.includes("აიღო") && mails[2].to === "mari@example.com");
     assert.equal((await c1(`/api/orders/${oid}/deliver`, { note: "ჩაბარდა მეზობელს" })).s, 200);
-    r = await c1("/api/state"); assert.equal(r.j.orders[0].status, "delivered", "delivered today stays visible to the courier");
+    r = await c1("/api/state"); assert.equal(r.j.deliveries[0].status, "delivered", "delivered today stays visible to the courier");
+    // უფლებების გადაცემა: გიოს ვაძლევთ "ყველა შეკვეთის ნახვას" და მაშინვე ხედავს; საკუთარს ვერ ცვლის; ადმინისას ვერ ცვლის
+    const gioId = (await admin("/api/state")).j.users.find((u) => u.name === "გიო").id;
+    assert.equal((await admin(`/api/users/${gioId}`, { perms: ["order_create", "orders_all", "nonsense"] })).s, 200);
+    r = await sales2("/api/state"); assert.deepEqual(r.j.me.perms, ["order_create", "orders_all"]); assert.equal(r.j.orders.length, 1, "with orders_all the other seller now sees every order");
+    assert.equal((await admin(`/api/users/${gioId}`, { perms: ["order_create", "stock_view"] })).s, 200);
+    assert.equal((await sales2(`/api/users/${gioId}`, { perms: [] })).s, 403, "no users permission");
+    assert.equal((await admin(`/api/users/${(await admin("/api/state")).j.me.id}`, { perms: [] })).s, 400, "cannot change own permissions");
+    assert.equal((await admin("/api/users", { name: "ლუკა", email: "luka@moku.ge", role: "sales", password: "pass12345", perms: ["courier", "order_create"] })).s, 200, "mixed: seller who also delivers");
+    r = await admin("/api/state"); assert.ok(r.j.couriers.some((c) => c.name === "ლუკა"), "a user with the courier permission appears in the courier list");
 
     r = await admin("/api/state"); const p0 = r.j.products.find((p) => p.id === "toolbox");
     assert.equal(r.j.orders.find((x) => x.id === oid).status, "delivered"); assert.equal(p0.sold, 2); assert.equal(p0.revenue, 178); assert.equal(r.j.emails.filter((e) => e.status === "sent").length, 3);

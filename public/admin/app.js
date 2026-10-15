@@ -11,8 +11,24 @@ const ROLE = { admin: "ადმინი", sales: "გაყიდვები"
 const ZONE = { tbilisi: ["თბილისი", 7], region: ["რეგიონი", 15], pickup: ["თვითგატანა", 0] };
 const KIND = { order_created: "მყიდველს: შეკვეთა გაფორმდა", courier_assigned: "კურიერს: წასაღები შეკვეთა", picked: "მყიდველს: კურიერმა აიღო" };
 const MST = { sent: "გაიგზავნა", failed: "ვერ გაიგზავნა", skipped: "გამოტოვებულია", sending: "იგზავნება" };
-const TABS = { admin: [["home", "მთავარი"], ["orders", "შეკვეთები"], ["neworder", "ახალი შეკვეთა"], ["couriers", "კურიერები"], ["stock", "მარაგი"], ["users", "თანამშრომლები"], ["emails", "მეილები"]],
-  sales: [["neworder", "ახალი შეკვეთა"], ["orders", "ჩემი შეკვეთები"], ["stock", "მარაგი"]], courier: [] };
+// უფლებები: კოდი → სახელი. თანამშრომელი ხედავს მხოლოდ იმ განყოფილებებს, რისი უფლებაც აქვს.
+const PERM = [["order_create", "ახალი შეკვეთის გაფორმება"], ["orders_all", "ყველა შეკვეთის ნახვა"], ["orders_assign", "კურიერის დანიშვნა და შეკვეთის გაუქმება"], ["couriers_view", "კურიერების დღის ფურცელი"],
+  ["stock_view", "მარაგის ნახვა"], ["stock_edit", "მარაგის შეცვლა"], ["csv", "შეკვეთების გადმოწერა Excel-ში"], ["emails", "მეილების ნახვა და ხელახლა გაგზავნა"], ["site_edit", "საიტის რედაქტირება (ტექსტები, სათამაშოები, ფასები)"],
+  ["users", "თანამშრომლების მართვა"], ["courier", "კურიერის რეჟიმი (მიტანა)"]];
+const PRESET = { sales: ["order_create", "orders_all", "stock_view"], courier: ["courier"], admin: PERM.map(p => p[0]).filter(p => p !== "courier") };
+const has = (...ps) => ps.some(p => (S?.me?.perms || []).includes(p));
+function tabsFor() {
+  const t = [];
+  if (has("courier")) t.push(["deliver", "მიტანა"]);
+  if (has("orders_all")) t.push(["home", "მთავარი"]);
+  if (has("orders_all", "order_create")) t.push(["orders", has("orders_all") ? "შეკვეთები" : "ჩემი შეკვეთები"]);
+  if (has("order_create")) t.push(["neworder", "ახალი შეკვეთა"]);
+  if (has("couriers_view")) t.push(["couriers", "კურიერები"]);
+  if (has("stock_view", "stock_edit")) t.push(["stock", "მარაგი"]);
+  if (has("users")) t.push(["users", "თანამშრომლები"]);
+  if (has("emails")) t.push(["emails", "მეილები"]);
+  return t;
+}
 let S = null, tab = "", filter = "open", F = null, busy = false, pending = false, force = false, pw = false, q = "", found = "", reason = {};
 const img = n => n ? (String(n).startsWith("u-") ? `${S.imgBase}/${n}-480.webp` : `/img/${n}-480.webp`) : "";
 const PH = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 2h3l1.5 3.5L6 7a9 9 0 0 0 3 3l1.5-1.5L14 10v3a1 1 0 0 1-1 1A11 11 0 0 1 2 3a1 1 0 0 1 1-1Z"/></svg>';
@@ -43,14 +59,14 @@ function draw() {
   if (S && a && app.contains(a) && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && !force) { pending = true; return; }
   force = false; pending = false;
   if (!S) { $("#tabs").hidden = $("#me").hidden = true; app.innerHTML = login(); return; }
-  const role = S.me.role, tabs = TABS[role];
+  const role = S.me.role, tabs = tabsFor();
   if (!tabs.some(t => t[0] === tab)) tab = tabs[0]?.[0] || "";
   $("#me").hidden = false;
-  $("#me").innerHTML = `<span>${esc(S.me.name)}${S.me.name === ROLE[role] ? "" : " · " + ROLE[role]}</span>${role === "admin" ? `<a class="link" href="/">საიტი</a>` : ""}<button class="link" data-op="pw">პაროლის შეცვლა</button><button class="link" data-op="logout">გასვლა</button>`;
-  $("#tabs").hidden = !tabs.length;
+  $("#me").innerHTML = `<span>${esc(S.me.name)}${S.me.name === ROLE[role] ? "" : " · " + ROLE[role]}</span>${has("site_edit") ? `<a class="link" href="/">საიტი</a>` : ""}<button class="link" data-op="pw">პაროლის შეცვლა</button><button class="link" data-op="logout">გასვლა</button>`;
+  $("#tabs").hidden = tabs.length < 2;
   $("#tabs").innerHTML = tabs.map(([k, l]) => `<button type="button" data-tab="${k}" aria-pressed="${k === tab}">${l}</button>`).join("");
-  if (!F && role !== "courier") F = blank();
-  app.innerHTML = (pw ? pwForm() : "") + (role === "courier" ? courier() : tab === "home" ? home() : tab === "orders" ? orders() : tab === "neworder" ? newOrder() : tab === "couriers" ? couriersTab() : tab === "stock" ? (role === "admin" ? stockAdmin() : stockView()) : tab === "users" ? users() : emails());
+  if (!F && has("order_create")) F = blank();
+  app.innerHTML = (pw ? pwForm() : "") + (!tab ? `<div class="msg">უფლებები ჯერ არ გაქვს. მიმართე ადმინს.</div>` : tab === "deliver" ? courier() : tab === "home" ? home() : tab === "orders" ? orders() : tab === "neworder" ? newOrder() : tab === "couriers" ? couriersTab() : tab === "stock" ? (has("stock_edit") ? stockAdmin() : stockView()) : tab === "users" ? users() : emails());
 }
 app.addEventListener("focusout", () => setTimeout(() => { if (pending) draw(); }, 0));
 
@@ -64,24 +80,24 @@ const pwForm = () => `<form class="card" id="pwf" style="margin-bottom:16px"><di
   <div class="acts"><button class="btn" type="submit">შენახვა</button><button class="btn ghost" type="button" data-op="pw">დახურვა</button></div></form>`;
 
 function card(o) {
-  const admin = S.me.role === "admin", s = o.status, cs = `<select id="c-${o.id}" aria-label="კურიერი">${S.couriers.map(c => `<option value="${c.id}" ${c.id === o.courier_id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>`;
+  const admin = has("orders_assign"), s = o.status, cs = `<select id="c-${o.id}" aria-label="კურიერი">${S.couriers.map(c => `<option value="${c.id}" ${c.id === o.courier_id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>`;
   const canAssign = ["new", "assigned", "problem"].includes(s) && S.couriers.length;
-  return `<div class="card strip s-${s}"><div class="top"><b>№ ${o.id}</b><span class="pill ${s}">${ST[s]}</span><time>${when(o.created)}</time>${admin ? `<small>გააფორმა: ${esc(o.seller)}</small>` : ""}</div>
+  return `<div class="card strip s-${s}"><div class="top"><b>№ ${o.id}</b><span class="pill ${s}">${ST[s]}</span><time>${when(o.created)}</time>${has("orders_all") ? `<small>გააფორმა: ${esc(o.seller)}</small>` : ""}</div>
     <div class="who"><span>${esc(o.customer)} · ${esc(o.phone)}${o.email ? " · " + esc(o.email) : ""}</span><span>${esc(place(o))}</span>
     <span>მიტანის დღე: ${esc(day(o.delivery_date))}${o.courier ? " · კურიერი: " + esc(o.courier) : ""}</span></div>
     <ul class="items">${o.items.map(i => `<li><span>${esc(i.name)} × ${i.qty}</span><span>${gel(i.qty * i.price)}</span></li>`).join("")}<li><span>მიწოდება</span><span>${gel(o.fee)}</span></li></ul>
     <div class="sum"><span>სულ</span><span>${gel(total(o))}</span></div>
     ${o.note ? `<div class="note">შენიშვნა: ${esc(o.note)}</div>` : ""}${o.courier_note ? `<div class="note">კურიერი: ${esc(o.courier_note)}</div>` : ""}
-    <div class="acts">${canAssign ? `${cs}<button class="btn ghost" data-op="assign" data-id="${o.id}">${s === "new" ? "კურიერის დანიშვნა" : "კურიერის შეცვლა"}</button>` : ""}
+    <div class="acts">${admin && canAssign ? `${cs}<button class="btn ghost" data-op="assign" data-id="${o.id}">${s === "new" ? "კურიერის დანიშვნა" : "კურიერის შეცვლა"}</button>` : ""}
       ${admin && ["new", "assigned", "picked", "problem"].includes(s) ? `<button class="btn ghost" data-op="deliver" data-id="${o.id}">ჩაბარებულია</button>` : ""}
       ${admin && ["picked", "problem", "delivered"].includes(s) ? `<button class="btn bad" data-op="return" data-id="${o.id}">დაბრუნდა</button>` : ""}
-      ${["new", "assigned", "problem"].includes(s) ? `<button class="btn bad" data-op="cancel" data-id="${o.id}">გაუქმება</button>` : ""}</div></div>`;
+      ${admin && ["new", "assigned", "problem"].includes(s) ? `<button class="btn bad" data-op="cancel" data-id="${o.id}">გაუქმება</button>` : ""}</div></div>`;
 }
 const OPEN = ["new", "assigned", "picked", "problem"];
 function home() {
   const n = s => S.orders.filter(o => o.status === s).length, sum = s => sumOf(S.orders.filter(o => o.status === s));
-  const units = S.products.reduce((a, p) => a + Math.max(0, p.left), 0), sold = S.products.reduce((a, p) => a + p.sold, 0), rev = S.products.reduce((a, p) => a + p.revenue, 0);
-  const low = S.products.filter(p => !p.hidden && p.left <= 2 && (p.stock_in > 0 || p.sold > 0 || p.reserved > 0 || p.onway > 0)), open = S.orders.filter(o => OPEN.includes(o.status));
+  const full = has("stock_edit"), units = S.products.reduce((a, p) => a + Math.max(0, p.left), 0), sold = S.products.reduce((a, p) => a + (p.sold || 0), 0), rev = S.products.reduce((a, p) => a + (p.revenue || 0), 0);
+  const low = full ? S.products.filter(p => !p.hidden && p.left <= 2 && (p.stock_in > 0 || p.sold > 0 || p.reserved > 0 || p.onway > 0)) : [], open = S.orders.filter(o => OPEN.includes(o.status));
   const live = o => !["cancelled", "returned"].includes(o.status);
   const today = S.orders.filter(o => live(o) && String(o.created).slice(0, 10) === S.today), month = S.orders.filter(o => live(o) && String(o.created).slice(0, 7) === S.today.slice(0, 7));
   const delivered = month.filter(o => o.status === "delivered");
@@ -92,12 +108,12 @@ function home() {
     <div class="tile"><span>კურიერთანაა</span><b>${n("picked") + n("problem")}</b><small>ასაღები ${gel(sum("picked") + sum("problem"))}</small></div></div>
   ${low.length ? `<h2>მარაგი იწურება</h2><div class="card">${low.map(p => `<div class="crow"><span>${esc(p.name)}</span><span class="pill ${p.left <= 0 ? "problem" : "new"}">${p.left <= 0 ? "გათავდა" : "დარჩა " + p.left}</span><span></span></div>`).join("")}</div>` : ""}
   <h2>გაყიდულია, მაგრამ ჯერ არ ჩაბარებულა <small>${open.length} · ${gel(sumOf(open))}</small></h2><div class="list">${open.map(card).join("") || `<div class="msg">ყველაფერი ჩაბარებულია.</div>`}</div>
-  <h2>სულ</h2><div class="tiles"><div class="tile"><span>მარაგში დარჩა</span><b>${units}</b><small>ცალი, ${S.products.length} სახეობა</small></div><div class="tile"><span>გაიყიდა და ჩაბარდა</span><b>${sold}</b><small>ცალი · ${gel(rev)}</small></div></div>`;
+  ${full ? `<h2>სულ</h2><div class="tiles"><div class="tile"><span>მარაგში დარჩა</span><b>${units}</b><small>ცალი, ${S.products.length} სახეობა</small></div><div class="tile"><span>გაიყიდა და ჩაბარდა</span><b>${sold}</b><small>ცალი · ${gel(rev)}</small></div></div>` : ""}`;
 }
 function orders() {
   const groups = { open: o => OPEN.includes(o.status), delivered: o => o.status === "delivered", closed: o => ["returned", "cancelled"].includes(o.status) }, list = S.orders.filter(groups[filter]);
   const shown = list.filter(matches);
-  return `<div class="search"><input id="q" type="search" placeholder="ძებნა: სახელი, ტელეფონი, მისამართი, №" value="${esc(q)}" aria-label="ძებნა">${S.me.role === "admin" ? `<a class="btn ghost" href="/api/orders.csv">Excel</a>` : ""}</div>
+  return `<div class="search"><input id="q" type="search" placeholder="ძებნა: სახელი, ტელეფონი, მისამართი, №" value="${esc(q)}" aria-label="ძებნა">${has("csv") ? `<a class="btn ghost" href="/api/orders.csv">Excel</a>` : ""}</div>
   <div class="chips" role="group" aria-label="სტატუსი">${[["open", "მიმდინარე"], ["delivered", "ჩაბარებული"], ["closed", "დაბრუნებული / გაუქმებული"]].map(([k, l]) => `<button type="button" data-filter="${k}" aria-pressed="${k === filter}">${l} · ${S.orders.filter(groups[k]).length}</button>`).join("")}</div>
   <div class="list">${shown.map(card).join("") || `<div class="msg">${q ? "ვერაფერი მოიძებნა." : "აქ შეკვეთა არ არის."}</div>`}</div>`;
 }
@@ -149,23 +165,29 @@ function couriersTab() {
   }).join("") || `<div class="msg">კურიერი ჯერ არ დაგიმატებია.</div>`}</div>`).join("") +
   (S.orders.some(o => o.status === "new") ? `<h2>კურიერის გარეშე <small>${S.orders.filter(o => o.status === "new").length}</small></h2><div class="list">${S.orders.filter(o => o.status === "new").map(card).join("")}</div>` : "");
 }
+let newRole = "sales";
+const permBox = (prefix, list, disabled) => `<div class="perms">${PERM.map(([k, l]) => `<label class="chk"><input type="checkbox" data-perm="${prefix}" value="${k}" ${list.includes(k) ? "checked" : ""} ${disabled ? "disabled" : ""}><span>${l}</span></label>`).join("")}</div>`;
 function users() {
+  const iAmAdmin = S.me.role === "admin";
   return `<form class="card" id="uf" autocomplete="off"><b>ახალი თანამშრომელი</b><div class="g2">
     <label for="u-name">სახელი<input id="u-name" required></label><label for="u-email">მეილი (ამით შევა სისტემაში)<input id="u-email" type="email" required></label>
-    <label for="u-role">როლი<select id="u-role"><option value="sales">გაყიდვები</option><option value="courier">კურიერი</option><option value="admin">ადმინი</option></select></label>
+    <label for="u-role">მზა ნაკრები (უფლებები თავისით მოინიშნება, მერე შეცვალე)<select id="u-role"><option value="sales" ${newRole === "sales" ? "selected" : ""}>გაყიდვები</option><option value="courier" ${newRole === "courier" ? "selected" : ""}>კურიერი</option>${iAmAdmin ? `<option value="admin" ${newRole === "admin" ? "selected" : ""}>ადმინი (ყველა უფლება)</option>` : ""}</select></label>
     <label for="u-pass">დროებითი პაროლი (მინ. 8 სიმბოლო)<input id="u-pass" minlength="8" required></label></div>
+    <span class="hint" style="margin:10px 0 4px;display:block">უფლებები</span>${permBox("new", PRESET[newRole], newRole === "admin")}
     <div class="acts"><button class="btn" type="submit">დამატება</button></div></form>
   <h2>თანამშრომლები</h2><div class="list">${S.users.map(u => `<div class="card"><div class="top"><b>${esc(u.name)}</b><span class="pill ${u.active ? "picked" : "cancelled"}">${ROLE[u.role]}${u.active ? "" : " · გათიშულია"}</span><small>${esc(u.email)}</small></div>
+    ${u.role === "admin" ? `<div class="note">ადმინს ყველა უფლება აქვს (კურიერის რეჟიმის გარდა).</div>` : u.id === S.me.id ? `<div class="note">საკუთარ უფლებებს ვერ შეცვლი.</div>` : `<details ${u.perms.length ? "" : "open"}><summary class="note">უფლებები · ${u.perms.length} / ${PERM.length}</summary>${permBox(u.id, u.perms)}<div class="acts" style="margin-top:8px"><button class="btn ghost" data-op="saveperms" data-id="${u.id}">უფლებების შენახვა</button></div></details>`}
     <div class="acts"><input id="np-${u.id}" placeholder="ახალი პაროლი" aria-label="ახალი პაროლი" style="max-width:200px"><button class="btn ghost" data-op="resetpw" data-id="${u.id}">პაროლის შეცვლა</button>
     ${u.id === S.me.id ? "" : `<button class="btn ${u.active ? "bad" : "ghost"}" data-op="toggleuser" data-id="${u.id}" data-on="${u.active ? 0 : 1}">${u.active ? "გათიშვა" : "ჩართვა"}</button>`}</div></div>`).join("")}</div>`;
 }
+const pickedPerms = prefix => [...document.querySelectorAll(`[data-perm="${prefix}"]:checked`)].map(c => c.value);
 const emails = () => `${S.mailReady ? "" : `<div class="msg" style="margin-bottom:14px">მეილის სერვისი ჯერ არ არის დაყენებული. სერვერზე გადატანისას ჩაირთვება.</div>`}
   <div class="list">${S.emails.map(e => `<div class="card"><div class="top"><b>№ ${e.order_id}</b><span class="pill ${e.status}">${MST[e.status] || e.status}</span><time>${when(e.created)}</time></div>
     <div class="who"><span>${esc(KIND[e.kind] || e.kind)}</span><span>${esc(e.to_addr || "მისამართის გარეშე")}</span></div>${e.error ? `<div class="note">${esc(e.error)}</div>` : ""}
     ${e.status === "failed" ? `<div class="acts"><button class="btn ghost" data-op="retry" data-id="${e.id}">ხელახლა გაგზავნა</button></div>` : ""}</div>`).join("") || `<div class="msg">წერილები ჯერ არ გაგზავნილა.</div>`}</div>`;
 
 function courier() {
-  const todo = S.orders.filter(o => o.status !== "delivered"), done = S.orders.filter(o => o.status === "delivered");
+  const list = S.deliveries || [], todo = list.filter(o => o.status !== "delivered"), done = list.filter(o => o.status === "delivered");
   const c = o => `<div class="card strip s-${o.status}"><div class="top"><b>№ ${o.id}</b><span class="pill ${o.status}">${o.status === "assigned" ? "წასაღებია" : o.status === "picked" ? "აღებული მაქვს" : ST[o.status]}</span></div>
     <div class="who"><span><b>${esc(o.customer)}</b></span><span>${esc(place(o))}</span></div>
     <div class="acts"><a class="btn ghost" href="tel:${esc(String(o.phone).replace(/[^\d+]/g, ""))}">${PH}${esc(o.phone)}</a>${o.address ? `<a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.address)}" target="_blank" rel="noopener">${MAP}რუკა</a>` : ""}</div>
@@ -180,7 +202,7 @@ function courier() {
   const label = d => d === S.today ? "დღეს" : d === S.tomorrow ? "ხვალ" : day(d);
   const todayList = byDay[S.today] || [];
   return `<div class="daybar"><span>დღეს წასაღები: <b>${todayList.length}</b></span><span>ასაღები სულ <b>${gel(todayList.reduce((a, o) => a + o.collect, 0))}</b></span></div>
-  ${Object.keys(byDay).sort().map(d => `<h2>${label(d)} <small>${byDay[d].length} · ${esc(day(d))}</small></h2><div class="list">${byDay[d].map(c).join("")}</div>`).join("") || `<h2>ჩემი შეკვეთები</h2><div class="msg">ახლა წასაღები არაფერია.</div>`}
+  ${Object.keys(byDay).sort().map(d => `<h2>${label(d)} <small>${byDay[d].length} · ${esc(day(d))}</small></h2><div class="list">${byDay[d].map(c).join("")}</div>`).join("") || `<h2>მიტანა</h2><div class="msg">ახლა წასაღები არაფერია.</div>`}
   ${done.length ? `<h2>დღეს ჩაბარებული <small>${done.length}</small></h2><div class="list">${done.map(c).join("")}</div>` : ""}`;
 }
 
@@ -201,6 +223,7 @@ document.addEventListener("click", async e => {
   if (a === "cdeliver") return act(`orders/${id}/deliver`, { note: $(`#n-${id}`)?.value || "" }, "ჩაბარებულია.");
   if (a === "problem") { const r = reason[id] || ""; const note = r === "სხვა" ? ($(`#n-${id}`)?.value || "") : r; delete reason[id]; return act(`orders/${id}/problem`, { note }); }
   if (a === "toggleuser") return act(`users/${id}`, { active: b.dataset.on === "1" });
+  if (a === "saveperms") return act(`users/${id}`, { perms: pickedPerms(id) }, "უფლებები შეინახა. თანამშრომელი მაშინვე მხოლოდ ამას დაინახავს.");
   if (a === "resetpw") return act(`users/${id}`, { password: $(`#np-${id}`).value }, "პაროლი შეიცვალა.");
   if (a === "retry") return act(`emails/${id}/retry`);
 });
@@ -214,13 +237,14 @@ app.addEventListener("input", e => { const el = e.target;
   if (el.dataset.fi && el.dataset.k !== "product_id") F.items[+el.dataset.fi][el.dataset.k] = +el.value || 0;
   if ($("#f-total")) $("#f-total").textContent = gel(F.items.reduce((a, i) => a + i.qty * i.price, 0) + (+F.fee || 0)); });
 app.addEventListener("change", e => { const el = e.target;
+  if (el.id === "u-role") { newRole = el.value; document.querySelectorAll('[data-perm="new"]').forEach(c => { c.checked = PRESET[newRole].includes(c.value); c.disabled = newRole === "admin"; }); return; }
   if (F && el.dataset.f === "zone") { F.fee = ZONE[F.zone][1]; force = true; draw(); }
   if (F && el.dataset.fi && el.dataset.k === "product_id") { F.items[+el.dataset.fi].product_id = el.value; F.items[+el.dataset.fi].price = S.products.find(p => p.id == el.value)?.price || 0; force = true; draw(); }
   if (el.dataset.s) act(`stock/${encodeURIComponent(el.dataset.s)}`, { stock_in: +el.value || 0 }, "მარაგი შეინახა."); });
 app.addEventListener("submit", async e => { e.preventDefault(); const id = e.target.id;
   if (id === "login") { try { S = await api("login", { email: $("#l-email").value, password: $("#l-pass").value }); say(""); force = true; draw(); } catch (x) { say(x.message); } }
   if (id === "f") { if (await act("orders", F, "შეკვეთა გაფორმდა. წერილები იგზავნება.")) { F = blank(); found = ""; tab = "orders"; filter = "open"; force = true; draw(); } }
-  if (id === "uf") { if (await act("users", { name: $("#u-name").value, email: $("#u-email").value, role: $("#u-role").value, password: $("#u-pass").value }, "თანამშრომელი დაემატა.")) e.target.reset?.(); }
+  if (id === "uf") { if (await act("users", { name: $("#u-name").value, email: $("#u-email").value, role: $("#u-role").value, password: $("#u-pass").value, perms: pickedPerms("new") }, "თანამშრომელი დაემატა.")) { newRole = "sales"; force = true; draw(); } }
   if (id === "pwf") { try { await api("password", { old: $("#p-old").value, new: $("#p-new").value }); pw = false; say("პაროლი შეიცვალა.", true); force = true; draw(); } catch (x) { say(x.message); } } });
 
 (async () => { try { S = await api("state"); } catch { S = null; } draw();

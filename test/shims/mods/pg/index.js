@@ -17,7 +17,13 @@ class Pool {
   async query(text, params = []) {
     const sql = pgToSqlite(text).trim(), args = params.map((v) => (v === true ? 1 : v === false ? 0 : v === undefined ? null : v));
     try {
-      if (!args.length && /;\s*\S/.test(sql)) { this.db.exec(sql); return { rows: [] }; }
+      if (!args.length && /;\s*\S/.test(sql)) {
+        // SQLite has no "add column if not exists": run statements one by one and ignore an already-existing column
+        for (const one of sql.split(/;\s*\n/).map((x) => x.trim()).filter(Boolean)) {
+          try { this.db.exec(one.replace(/add column if not exists/gi, "add column")); } catch (e) { if (!/duplicate column/.test(e.message)) throw e; }
+        }
+        return { rows: [] };
+      }
       if (/^(begin|commit|rollback)/i.test(sql)) { this.db.exec(sql); return { rows: [] }; }
       const st = this.db.prepare(sql);
       if (/^\s*(select|with)\b|\breturning\b/i.test(sql)) return { rows: st.all(...args).map((r) => ({ ...r })) };

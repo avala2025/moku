@@ -7,6 +7,13 @@ const { getShop, saveShop, nowPrice } = require("../lib/shop");
 const { mailSafe, mail, ready: mailReady, ZONES } = require("../lib/mail");
 
 const ROLES = ["admin", "sales", "courier"];
+// უფლებები: თანამშრომელი ხედავს მხოლოდ იმას, რისი უფლებაც აქვს. ადმინს ყველაფერი აქვს.
+const PERMS = ["order_create", "orders_all", "orders_assign", "couriers_view", "stock_view", "stock_edit", "csv", "emails", "site_edit", "users", "courier"];
+const PRESET = { admin: PERMS, sales: ["order_create", "orders_all", "stock_view"], courier: ["courier"] };
+// ადმინს ყველა უფლება აქვს, გარდა კურიერის რეჟიმისა (რომ კურიერების სიაში არ გამოჩნდეს)
+const permsOf = (u) => u.role === "admin" ? PERMS.filter((p) => p !== "courier") : String(u.perms || "").split(",").filter((p) => PERMS.includes(p));
+const can = (u, ...ps) => { const have = permsOf(u); return ps.some((p) => have.includes(p)); };
+const cleanPerms = (list) => PERMS.filter((p) => Array.isArray(list) && list.includes(p)).join(",");
 const OPEN = ["new", "assigned", "picked", "problem"];
 const HOLD = [...OPEN, "delivered"]; // ეს სტატუსები მარაგს იკავებს
 
@@ -16,7 +23,7 @@ const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 const iso = () => new Date().toISOString();
 const tbilisiDay = (plusDays = 0) => new Date(Date.now() + 4 * 36e5 + plusDays * 864e5).toISOString().slice(0, 10); // UTC+4
 const todayStartIso = () => new Date(Date.parse(tbilisiDay() + "T00:00:00Z") - 4 * 36e5).toISOString();
-const pub = (u) => ({ id: u.id, name: u.name, email: u.email, role: u.role });
+const pub = (u) => ({ id: u.id, name: u.name, email: u.email, role: u.role, perms: permsOf(u) });
 const num = (o, ...keys) => { keys.forEach((k) => { if (o[k] !== null && o[k] !== undefined) o[k] = Number(o[k]); }); return o; };
 
 class HttpError extends Error { constructor(code, msg) { super(msg); this.code = code; } }
@@ -45,39 +52,42 @@ async function stockView(shop) {
   });
 }
 
-async function ordersFor(u) {
+// შეკვეთების სია: "ყველა შეკვეთის" უფლებით ყველაფერი, თორემ მხოლოდ თავისი გაფორმებული; კურიერისთვის ცალკე სია (deliveries)
+async function ordersFor(u, mode = "office") {
   let orders;
-  if (u.role === "admin") orders = await db.all("select * from orders order by id desc limit 500");
-  else if (u.role === "sales") orders = await db.all("select * from orders where created_by = $1 order by id desc limit 200", [u.id]);
-  else orders = await db.all("select * from orders where courier_id = $1 and (status in ('assigned','picked','problem') or (status = 'delivered' and done_at >= $2)) order by delivery_date, id", [u.id, todayStartIso()]);
+  if (mode === "courier") orders = await db.all("select * from orders where courier_id = $1 and (status in ('assigned','picked','problem') or (status = 'delivered' and done_at >= $2)) order by delivery_date, id", [u.id, todayStartIso()]);
+  else if (can(u, "orders_all")) orders = await db.all("select * from orders order by id desc limit 500");
+  else if (can(u, "order_create")) orders = await db.all("select * from orders where created_by = $1 order by id desc limit 200", [u.id]);
+  else orders = [];
   if (!orders.length) return [];
   const ids = new Set(orders.map((o) => Number(o.id))), min = Math.min(...ids);
   const items = (await db.all("select order_id, product_id, name, qty, price from order_items where order_id >= $1 order by id", [min])).filter((i) => ids.has(Number(i.order_id)));
   return orders.map((o) => { num(o, "id", "created_by", "courier_id", "fee"); o.items = items.filter((i) => Number(i.order_id) === o.id).map((i) => ({ product_id: i.product_id, name: i.name, qty: Number(i.qty), price: Number(i.price) })); return o; });
 }
 
+const OFFICE = ["order_create", "orders_all", "orders_assign", "couriers_view", "stock_view", "stock_edit", "csv", "emails", "users"];
+async function couriersList() {
+  return (await db.all("select id, name, role, perms from users where active = true order by name")).filter((c) => can(c, "courier")).map((c) => ({ id: Number(c.id), name: c.name }));
+}
 async function state(u) {
-  if (u.role === "courier") {
-    const orders = (await ordersFor(u)).map((o) => ({
+  const out = { me: pub(u), tomorrow: tbilisiDay(1), today: tbilisiDay(0), imgBase: storage.publicBase(), mailReady: mailReady() };
+  if (can(u, "courier")) {
+    out.deliveries = (await ordersFor(u, "courier")).map((o) => ({
       id: o.id, customer: o.customer, phone: o.phone, address: o.address, zone: o.zone, note: o.note, delivery_date: o.delivery_date, status: o.status, courier_note: o.courier_note,
       collect: o.items.reduce((a, i) => a + i.qty * i.price, 0) + o.fee, items: o.items.map((i) => ({ name: i.name, qty: i.qty })),
     }));
-    return { me: pub(u), orders };
   }
+  if (!can(u, ...OFFICE)) return out;
   const shop = await getShop();
   let products = await stockView(shop);
-  const couriers = (await db.all("select id, name from users where role = 'courier' and active = true order by name")).map((c) => num(c, "id"));
   const names = Object.fromEntries((await db.all("select id, name from users")).map((x) => [Number(x.id), x.name]));
   const orders = (await ordersFor(u)).map((o) => ({ ...o, courier: names[o.courier_id] || "", seller: names[o.created_by] || "" }));
   const thumbs = Object.fromEntries(shop.products.map((p) => [p.id, p.imgs[0] ? p.imgs[0][0] : ""]));
   products = products.map((p) => ({ ...p, img: thumbs[p.id] || "" }));
-  if (u.role === "sales") products = products.map(({ id, name, price, left, hidden, img }) => ({ id, name, price, left, hidden, img }));
-  const out = { me: pub(u), products, couriers, orders, tomorrow: tbilisiDay(1), today: tbilisiDay(0), imgBase: storage.publicBase() };
-  if (u.role === "admin") {
-    out.users = (await db.all("select id, name, email, role, active from users order by role, name")).map((x) => num(x, "id"));
-    out.emails = (await db.all("select * from emails order by id desc limit 60")).map((x) => num(x, "id", "order_id"));
-    out.mailReady = mailReady();
-  }
+  if (!can(u, "stock_edit")) products = products.map(({ id, name, price, left, hidden, img }) => ({ id, name, price, left, hidden, img }));
+  Object.assign(out, { products, couriers: await couriersList(), orders });
+  if (can(u, "users")) out.users = (await db.all("select id, name, email, role, active, perms from users order by role, name")).map((x) => ({ ...num(x, "id"), active: !!x.active, perms: permsOf(x) }));
+  if (can(u, "emails")) out.emails = (await db.all("select * from emails order by id desc limit 60")).map((x) => num(x, "id", "order_id"));
   return out;
 }
 
@@ -96,7 +106,8 @@ module.exports = function register(app) {
     const u = await db.one("select * from users where id = $1 and active = true", [uid]);
     return u ? num(u, "id") : null;
   }
-  const need = async (req, ...roles) => { const u = await me(req); if (!u) fail(401, "შედი სისტემაში."); if (roles.length && !roles.includes(u.role)) fail(403, "უფლება არ გაქვს."); return u; };
+  // need(req, "a", "b"): შესული უნდა იყოს და ერთ-ერთი უფლება მაინც ჰქონდეს
+  const need = async (req, ...perms) => { const u = await me(req); if (!u) fail(401, "შედი სისტემაში."); if (perms.length && !can(u, ...perms)) fail(403, "უფლება არ გაქვს."); return u; };
 
   // ყველა ცვლილება (POST) საჭიროებს ჩვენს სათაურს: ასე სხვა საიტი ვერ გააგზავნის ფორმას შენი სახელით
   app.use("/api", (req, res, next) => {
@@ -127,13 +138,13 @@ module.exports = function register(app) {
 
   // ახალი შეკვეთა: გაყიდვები და ადმინი
   app.post("/api/orders", h(async (req, res) => {
-    const u = await need(req, "admin", "sales"), b = req.body, shop = await getShop();
+    const u = await need(req, "order_create"), b = req.body, shop = await getShop();
     const customer = str(b.customer, 120), phone = str(b.phone, 40), email = str(b.email, 160).toLowerCase(), zone = ZONES[b.zone] ? b.zone : "tbilisi";
     if (!customer || !phone) fail(400, "შეავსე სახელი და ტელეფონი.");
     if (email && !isEmail(email)) fail(400, "მეილის მისამართი არასწორია.");
     const date = /^\d{4}-\d\d-\d\d$/.test(b.delivery_date) ? b.delivery_date : tbilisiDay(1);
     let courier = null;
-    if (b.courier_id) { courier = await db.one("select id from users where id = $1 and role = 'courier' and active = true", [int(b.courier_id)]); if (!courier) fail(400, "კურიერი ვერ მოიძებნა."); num(courier, "id"); }
+    if (b.courier_id) { courier = (await couriersList()).find((c) => c.id === int(b.courier_id)) || null; if (!courier) fail(400, "კურიერი ვერ მოიძებნა."); }
     const stock = Object.fromEntries((await stockView(shop)).map((p) => [p.id, p]));
     const items = (Array.isArray(b.items) ? b.items : []).slice(0, 30).map((i) => ({ p: stock[String(i.product_id)], qty: int(i.qty, 1, 999), price: int(i.price) })).filter((i) => i.p);
     if (!items.length) fail(400, "დაამატე მინიმუმ ერთი სათამაშო.");
@@ -160,30 +171,32 @@ module.exports = function register(app) {
     if (!o) fail(404, "შეკვეთა ვერ მოიძებნა.");
     num(o, "id", "created_by", "courier_id");
     const set = (sql, params) => db.run(`update orders set ${sql} where id = $${params.length + 1}`, [...params, o.id]);
-    if (u.role === "courier") {
-      if (o.courier_id !== u.id) fail(404, "შეკვეთა ვერ მოიძებნა."); // სხვისი შეკვეთა "არ არსებობს"
+    if (["pick", "deliver", "problem"].includes(act) && can(u, "courier") && o.courier_id === u.id) {
+      // კურიერის მოქმედებები თავის შეკვეთაზე
       if (act === "pick" && o.status === "assigned") { await set("status = 'picked', picked_at = $1", [iso()]); mailSafe("picked", o.id, o.email); }
       else if (act === "deliver" && ["picked", "problem"].includes(o.status)) await set("status = 'delivered', done_at = $1, courier_note = $2", [iso(), str(b.note, 300)]);
       else if (act === "problem" && ["assigned", "picked"].includes(o.status)) { if (!str(b.note)) fail(400, "დაწერე, რა მოხდა."); await set("status = 'problem', courier_note = $1", [str(b.note, 300)]); }
       else fail(400, "ეს მოქმედება ამ სტატუსზე არ შეიძლება.");
       return res.json(await state(u));
     }
-    if (u.role === "sales" && o.created_by !== u.id) fail(404, "შეკვეთა ვერ მოიძებნა.");
+    if (!can(u, "orders_all") && o.created_by !== u.id) fail(404, "შეკვეთა ვერ მოიძებნა."); // სხვისი შეკვეთა "არ არსებობს"
+    if (!can(u, "orders_assign")) fail(403, "უფლება არ გაქვს.");
     if (act === "assign" && ["new", "assigned", "problem"].includes(o.status)) {
-      const c = await db.one("select id, email from users where id = $1 and role = 'courier' and active = true", [int(b.courier_id)]);
+      const c = (await couriersList()).find((x) => x.id === int(b.courier_id));
       if (!c) fail(400, "აირჩიე კურიერი.");
-      await set("courier_id = $1, status = 'assigned', courier_note = ''", [Number(c.id)]);
-      mailSafe("courier_assigned", o.id, c.email);
+      const row = await db.one("select email from users where id = $1", [c.id]);
+      await set("courier_id = $1, status = 'assigned', courier_note = ''", [c.id]);
+      mailSafe("courier_assigned", o.id, row && row.email);
     } else if (act === "cancel" && ["new", "assigned", "problem"].includes(o.status)) await set("status = 'cancelled', done_at = $1", [iso()]);
-    else if (u.role === "admin" && act === "deliver" && OPEN.includes(o.status)) await set("status = 'delivered', done_at = $1", [iso()]);
-    else if (u.role === "admin" && act === "return" && ["picked", "problem", "delivered"].includes(o.status)) await set("status = 'returned', done_at = $1", [iso()]);
+    else if (act === "deliver" && OPEN.includes(o.status)) await set("status = 'delivered', done_at = $1", [iso()]);
+    else if (act === "return" && ["picked", "problem", "delivered"].includes(o.status)) await set("status = 'returned', done_at = $1", [iso()]);
     else fail(400, "ეს მოქმედება ამ სტატუსზე არ შეიძლება.");
     res.json(await state(u));
   }));
 
   // მყიდველის ძებნა ტელეფონით: ბოლო შეკვეთიდან სახელი და მისამართი (გაყიდვები და ადმინი)
   app.get("/api/customer", h(async (req, res) => {
-    await need(req, "admin", "sales");
+    await need(req, "order_create");
     const digits = String(req.query.phone || "").replace(/\D/g, "");
     if (digits.length < 6) return res.json({});
     const rows = await db.all("select customer, phone, email, address, zone from orders where regexp_replace(phone, '[^0-9]', '', 'g') like $1 order by id desc limit 1", ["%" + digits.slice(-9)]);
@@ -192,7 +205,7 @@ module.exports = function register(app) {
 
   // შეკვეთების გადმოწერა Excel-ისთვის (CSV): ადმინი
   app.get("/api/orders.csv", h(async (req, res) => {
-    await need(req, "admin");
+    await need(req, "csv");
     const names = Object.fromEntries((await db.all("select id, name from users")).map((x) => [Number(x.id), x.name]));
     const orders = await db.all("select * from orders order by id desc limit 5000");
     const items = await db.all("select order_id, name, qty, price from order_items order by id");
@@ -209,7 +222,7 @@ module.exports = function register(app) {
 
   // მარაგი: მხოლოდ ადმინი წერს, რამდენი ცალი მიიღო
   app.post("/api/stock/:pid", h(async (req, res) => {
-    const u = await need(req, "admin"), shop = await getShop();
+    const u = await need(req, "stock_edit"), shop = await getShop();
     if (!shop.products.some((p) => p.id === req.params.pid)) fail(404, "სათამაშო ვერ მოიძებნა.");
     await db.run("insert into stock (product_id, stock_in) values ($1,$2) on conflict (product_id) do update set stock_in = excluded.stock_in", [req.params.pid, int(req.body.stock_in)]);
     res.json(await state(u));
@@ -217,18 +230,26 @@ module.exports = function register(app) {
 
   // თანამშრომლები
   app.post("/api/users", h(async (req, res) => {
-    const u = await need(req, "admin"), b = req.body, email = str(b.email, 160).toLowerCase(), pw = str(b.password, 200);
+    const u = await need(req, "users"), b = req.body, email = str(b.email, 160).toLowerCase(), pw = str(b.password, 200);
     if (!str(b.name) || !isEmail(email)) fail(400, "შეავსე სახელი და სწორი მეილი.");
     if (pw.length < 8) fail(400, "პაროლი მინიმუმ 8 სიმბოლო უნდა იყოს.");
     if (!ROLES.includes(b.role)) fail(400, "აირჩიე როლი.");
+    if (b.role === "admin" && u.role !== "admin") fail(403, "ადმინის დამატება მხოლოდ ადმინს შეუძლია.");
     if (await db.one("select id from users where email = $1", [email])) fail(400, "ეს მეილი უკვე რეგისტრირებულია.");
-    await db.run("insert into users (name, email, pass, role, active, created) values ($1,$2,$3,$4,true,$5)", [str(b.name, 80), email, auth.hash(pw), b.role, iso()]);
+    const perms = b.role === "admin" ? "" : Array.isArray(b.perms) ? cleanPerms(b.perms) : PRESET[b.role].join(",");
+    await db.run("insert into users (name, email, pass, role, active, created, perms) values ($1,$2,$3,$4,true,$5,$6)", [str(b.name, 80), email, auth.hash(pw), b.role, iso(), perms]);
     res.json(await state(u));
   }));
   app.post("/api/users/:id", h(async (req, res) => {
-    const u = await need(req, "admin"), b = req.body, t = await db.one("select id from users where id = $1", [int(req.params.id)]);
+    const u = await need(req, "users"), b = req.body, t = await db.one("select id, role from users where id = $1", [int(req.params.id)]);
     if (!t) fail(404, "ვერ მოიძებნა.");
     const tid = Number(t.id);
+    if (t.role === "admin" && u.role !== "admin") fail(403, "ადმინის შეცვლა მხოლოდ ადმინს შეუძლია.");
+    if (b.perms !== undefined) {
+      // უფლებების შეცვლა: საკუთარ თავს ვერა (რომ შემთხვევით არ ჩაიკეტო); ადმინს უფლებები როლითვე აქვს
+      if (tid === u.id) fail(400, "საკუთარ უფლებებს ვერ შეცვლი.");
+      if (t.role !== "admin") await db.run("update users set perms = $1 where id = $2", [cleanPerms(b.perms), tid]);
+    }
     if (b.active !== undefined) { if (tid === u.id) fail(400, "საკუთარ თავს ვერ გათიშავ."); await db.run("update users set active = $1 where id = $2", [!!b.active, tid]); }
     if (b.password !== undefined) { if (str(b.password, 200).length < 8) fail(400, "პაროლი მინიმუმ 8 სიმბოლო უნდა იყოს."); await db.run("update users set pass = $1 where id = $2", [auth.hash(str(b.password, 200)), tid]); }
     res.json(await state(u));
@@ -236,7 +257,7 @@ module.exports = function register(app) {
 
   // ვერ გაგზავნილი წერილის ხელახლა გაგზავნა
   app.post("/api/emails/:id/retry", h(async (req, res) => {
-    const u = await need(req, "admin"), e = await db.one("select * from emails where id = $1", [int(req.params.id)]);
+    const u = await need(req, "emails"), e = await db.one("select * from emails where id = $1", [int(req.params.id)]);
     if (!e || !e.to_addr) fail(400, "ვერ გაიგზავნა.");
     await db.run("delete from emails where id = $1", [e.id]);
     await mail(e.kind, Number(e.order_id), e.to_addr);
@@ -245,13 +266,13 @@ module.exports = function register(app) {
 
   // მაღაზიის მონაცემები პანელისთვის
   app.get("/api/shop", h(async (req, res) => {
-    await need(req, "admin");
+    await need(req, "site_edit");
     res.json({ data: await getShop(), imgBase: storage.publicBase(), uploads: storage.ready() });
   }));
 
   // ფოტოს ატვირთვა პანელიდან: ბრაუზერი უკვე შეამცირა, აქედან Supabase-ში მიდის
   app.post("/api/images/:file", express.raw({ type: ["image/webp", "image/jpeg", "image/png"], limit: "8mb" }), h(async (req, res) => {
-    await need(req, "admin");
+    await need(req, "site_edit");
     const file = req.params.file;
     if (!/^u-[a-z0-9]{8,30}-(480|960|1400)\.webp$|^u-[a-z0-9]{8,30}-1200\.jpg$/.test(file)) fail(400, "ფაილის სახელი არასწორია.");
     const type = String(req.headers["content-type"] || "").split(";")[0];
@@ -262,7 +283,7 @@ module.exports = function register(app) {
 
   // მაღაზიის ტექსტები, სათამაშოები, ფასები (საიტზე ჩაშენებული პანელიდან)
   app.post("/api/shop", h(async (req, res) => {
-    await need(req, "admin");
+    await need(req, "site_edit");
     const err = await saveShop(req.body && req.body.data);
     if (err) fail(400, err);
     res.json({ ok: true });
@@ -276,5 +297,5 @@ module.exports = function register(app) {
     return v ? v.left > 0 : undefined;
   }
 
-  return { me, ensureAdmin, availability };
+  return { me, ensureAdmin, availability, can };
 };
