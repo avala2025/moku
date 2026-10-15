@@ -197,7 +197,7 @@ module.exports = function register(app) {
     const orders = await db.all("select * from orders order by id desc limit 5000");
     const items = await db.all("select order_id, name, qty, price from order_items order by id");
     const by = {}; items.forEach((i) => (by[i.order_id] ||= []).push(`${i.name} × ${i.qty} (${i.price} ₾)`));
-    const ST = { new: "ახალი", assigned: "გაფორმებული", picked: "კურიერმა აიღო", problem: "ვერ ჩაბარდა", delivered: "ჩაბარებული", returned: "დაბრუნდა", cancelled: "გაუქმდა" };
+    const ST = { new: "ახალი", assigned: "კურიერი დანიშნულია", picked: "კურიერმა აიღო", problem: "ვერ ჩაბარდა", delivered: "ჩაბარებული", returned: "დაბრუნდა", cancelled: "გაუქმდა" };
     const cell = (v) => '"' + String(v ?? "").replace(/"/g, '""') + '"';
     const head = ["№", "თარიღი", "სტატუსი", "მყიდველი", "ტელეფონი", "მეილი", "ზონა", "მისამართი", "სათამაშოები", "მიწოდება ₾", "სულ ₾", "მიტანის დღე", "კურიერი", "გააფორმა", "შენიშვნა"];
     const lines = orders.map((o) => { const sum = items.filter((i) => Number(i.order_id) === Number(o.id)).reduce((a, i) => a + Number(i.qty) * Number(i.price), 0) + Number(o.fee);

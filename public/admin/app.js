@@ -6,7 +6,7 @@ const two = n => String(n).padStart(2, "0");
 const when = s => { const x = new Date(s); return isNaN(x) ? "" : `${two(x.getDate())}.${two(x.getMonth() + 1)} ${two(x.getHours())}:${two(x.getMinutes())}`; };
 const MON = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"], WD = ["კვირა", "ორშაბათი", "სამშაბათი", "ოთხშაბათი", "ხუთშაბათი", "პარასკევი", "შაბათი"];
 const day = d => { const x = new Date(d + "T12:00:00"); return isNaN(x) ? d : `${WD[x.getDay()]}, ${x.getDate()} ${MON[x.getMonth()]}`; };
-const ST = { new: "კურიერი არ არის დანიშნული", assigned: "გაფორმებული", picked: "კურიერმა აიღო", problem: "ვერ ჩაბარდა", delivered: "ჩაბარებული", returned: "დაბრუნდა", cancelled: "გაუქმდა" };
+const ST = { new: "კურიერი არ არის დანიშნული", assigned: "კურიერი დანიშნულია", picked: "კურიერმა აიღო", problem: "ვერ ჩაბარდა", delivered: "ჩაბარებული", returned: "დაბრუნდა", cancelled: "გაუქმდა" };
 const ROLE = { admin: "ადმინი", sales: "გაყიდვები", courier: "კურიერი" };
 const ZONE = { tbilisi: ["თბილისი", 7], region: ["რეგიონი", 15], pickup: ["თვითგატანა", 0] };
 const KIND = { order_created: "მყიდველს: შეკვეთა გაფორმდა", courier_assigned: "კურიერს: წასაღები შეკვეთა", picked: "მყიდველს: კურიერმა აიღო" };
@@ -19,6 +19,7 @@ const PH = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-wi
 const MAP = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 14s4.5-4 4.5-7.5a4.5 4.5 0 0 0-9 0C3.5 10 8 14 8 14Z"/><circle cx="8" cy="6.5" r="1.5"/></svg>';
 const REASONS = ["არ პასუხობს", "არასწორი მისამართი", "უარი თქვა", "სხვა"];
 const sumOf = list => list.reduce((a, o) => a + total(o), 0);
+const place = o => { const z = ZONE[o.zone]?.[0] || "", a = o.address || ""; if (!a) return z; return o.zone === "tbilisi" && /^(თბილისი|tbilisi)/i.test(a.trim()) ? a : z + ", " + a; };
 const matches = o => !q || [o.customer, o.phone, o.address, String(o.id), ...o.items.map(i => i.name)].join(" ").toLowerCase().includes(q.toLowerCase());
 const say = (m, ok) => { const e = $("#err"); e.textContent = m || ""; e.classList.toggle("ok", !!ok); };
 const total = o => o.items.reduce((a, i) => a + i.qty * i.price, 0) + o.fee;
@@ -45,7 +46,7 @@ function draw() {
   const role = S.me.role, tabs = TABS[role];
   if (!tabs.some(t => t[0] === tab)) tab = tabs[0]?.[0] || "";
   $("#me").hidden = false;
-  $("#me").innerHTML = `<span>${esc(S.me.name)} · ${ROLE[role]}</span>${role === "admin" ? `<a class="link" href="/">საიტი</a>` : ""}<button class="link" data-op="pw">პაროლის შეცვლა</button><button class="link" data-op="logout">გასვლა</button>`;
+  $("#me").innerHTML = `<span>${esc(S.me.name)}${S.me.name === ROLE[role] ? "" : " · " + ROLE[role]}</span>${role === "admin" ? `<a class="link" href="/">საიტი</a>` : ""}<button class="link" data-op="pw">პაროლის შეცვლა</button><button class="link" data-op="logout">გასვლა</button>`;
   $("#tabs").hidden = !tabs.length;
   $("#tabs").innerHTML = tabs.map(([k, l]) => `<button type="button" data-tab="${k}" aria-pressed="${k === tab}">${l}</button>`).join("");
   if (!F && role !== "courier") F = blank();
@@ -66,7 +67,7 @@ function card(o) {
   const admin = S.me.role === "admin", s = o.status, cs = `<select id="c-${o.id}" aria-label="კურიერი">${S.couriers.map(c => `<option value="${c.id}" ${c.id === o.courier_id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>`;
   const canAssign = ["new", "assigned", "problem"].includes(s) && S.couriers.length;
   return `<div class="card strip s-${s}"><div class="top"><b>№ ${o.id}</b><span class="pill ${s}">${ST[s]}</span><time>${when(o.created)}</time>${admin ? `<small>გააფორმა: ${esc(o.seller)}</small>` : ""}</div>
-    <div class="who"><span>${esc(o.customer)} · ${esc(o.phone)}${o.email ? " · " + esc(o.email) : ""}</span><span>${esc(ZONE[o.zone]?.[0] || "")}${o.address ? ", " + esc(o.address) : ""}</span>
+    <div class="who"><span>${esc(o.customer)} · ${esc(o.phone)}${o.email ? " · " + esc(o.email) : ""}</span><span>${esc(place(o))}</span>
     <span>მიტანის დღე: ${esc(day(o.delivery_date))}${o.courier ? " · კურიერი: " + esc(o.courier) : ""}</span></div>
     <ul class="items">${o.items.map(i => `<li><span>${esc(i.name)} × ${i.qty}</span><span>${gel(i.qty * i.price)}</span></li>`).join("")}<li><span>მიწოდება</span><span>${gel(o.fee)}</span></li></ul>
     <div class="sum"><span>სულ</span><span>${gel(total(o))}</span></div>
@@ -130,12 +131,12 @@ function newOrder() {
 function stockAdmin() {
   const t = k => S.products.reduce((a, p) => a + p[k], 0);
   return `<p class="hint">„მიღებული“ არის სულ რამდენი ცალი შემოვიდა საწყობში. დარჩენილს სისტემა თავად ითვლის. დაბრუნებული და გაუქმებული შეკვეთები მარაგს უბრუნდება.</p>
-  <div class="tw"><table><thead><tr><th>სათამაშო</th><th>ფასი, ₾</th><th>მიღებული (ჩაწერე)</th><th>გაფორმებული</th><th>კურიერთან</th><th>ჩაბარებული</th><th>დარჩა</th><th>შემოსავალი</th></tr></thead>
+  <div class="tw"><table><thead><tr><th>სათამაშო</th><th>დარჩა</th><th>მიღებული (ჩაწერე)</th><th>ფასი, ₾</th><th>გაფორმებული</th><th>კურიერთან</th><th>ჩაბარებული</th><th>შემოსავალი</th></tr></thead>
   <tbody>${S.products.map(p => `<tr><td>${esc(p.name)}${p.hidden ? ` <small class="note">(საიტზე დამალულია)</small>` : ""}</td>
-    <td>${p.price}</td>
+    <td class="${p.left <= 2 ? "low" : ""}">${p.left}</td>
     <td><input id="s-i-${p.id}" data-s="${p.id}" data-k="stock_in" type="number" min="0" value="${p.stock_in}" aria-label="მიღებული"></td>
-    <td>${p.reserved}</td><td>${p.onway}</td><td>${p.sold}</td><td class="${p.left <= 2 ? "low" : ""}">${p.left}</td><td>${gel(p.revenue)}</td></tr>`).join("")}</tbody>
-  <tfoot><tr><td>სულ</td><td></td><td>${t("stock_in")}</td><td>${t("reserved")}</td><td>${t("onway")}</td><td>${t("sold")}</td><td>${t("left")}</td><td>${gel(t("revenue"))}</td></tr></tfoot></table></div>
+    <td>${p.price}</td><td>${p.reserved}</td><td>${p.onway}</td><td>${p.sold}</td><td>${gel(p.revenue)}</td></tr>`).join("")}</tbody>
+  <tfoot><tr><td>სულ</td><td>${t("left")}</td><td>${t("stock_in")}</td><td></td><td>${t("reserved")}</td><td>${t("onway")}</td><td>${t("sold")}</td><td>${gel(t("revenue"))}</td></tr></tfoot></table></div>
   <p class="hint" style="margin-top:12px">სათამაშოს სახელი, ფასი და ფასდაკლება იცვლება საიტზე, „ადმინი“ ღილაკიდან. <a href="/">საიტზე გადასვლა</a></p>`;
 }
 function couriersTab() {
@@ -144,7 +145,7 @@ function couriersTab() {
     const mine = S.orders.filter(o => o.courier_id === c.id && o.delivery_date === d && ["assigned", "picked", "problem", "delivered"].includes(o.status));
     const todo = mine.filter(o => o.status !== "delivered");
     return `<div class="card"><div class="top"><b>${esc(c.name)}</b><span class="pill">${mine.length} შეკვეთა</span><small>ასაღები ${gel(sumOf(todo))}${mine.length - todo.length ? ` · ჩაბარდა ${mine.length - todo.length}` : ""}</small></div>
-      ${mine.map(o => `<div class="crow"><span>№ ${o.id} · ${esc(o.customer)} · ${esc(ZONE[o.zone]?.[0] || "")}${o.address ? ", " + esc(o.address) : ""}</span><span class="pill ${o.status}">${ST[o.status]}</span><span>${gel(total(o))}</span></div>`).join("") || `<div class="note">შეკვეთა არ არის.</div>`}</div>`;
+      ${mine.map(o => `<div class="crow"><span>№ ${o.id} · ${esc(o.customer)} · ${esc(place(o))}</span><span class="pill ${o.status}">${ST[o.status]}</span><span>${gel(total(o))}</span></div>`).join("") || `<div class="note">შეკვეთა არ არის.</div>`}</div>`;
   }).join("") || `<div class="msg">კურიერი ჯერ არ დაგიმატებია.</div>`}</div>`).join("") +
   (S.orders.some(o => o.status === "new") ? `<h2>კურიერის გარეშე <small>${S.orders.filter(o => o.status === "new").length}</small></h2><div class="list">${S.orders.filter(o => o.status === "new").map(card).join("")}</div>` : "");
 }
@@ -166,7 +167,7 @@ const emails = () => `${S.mailReady ? "" : `<div class="msg" style="margin-botto
 function courier() {
   const todo = S.orders.filter(o => o.status !== "delivered"), done = S.orders.filter(o => o.status === "delivered");
   const c = o => `<div class="card strip s-${o.status}"><div class="top"><b>№ ${o.id}</b><span class="pill ${o.status}">${o.status === "assigned" ? "წასაღებია" : o.status === "picked" ? "აღებული მაქვს" : ST[o.status]}</span></div>
-    <div class="who"><span><b>${esc(o.customer)}</b></span><span>${esc(ZONE[o.zone]?.[0] || "")}${o.address ? ", " + esc(o.address) : ""}</span></div>
+    <div class="who"><span><b>${esc(o.customer)}</b></span><span>${esc(place(o))}</span></div>
     <div class="acts"><a class="btn ghost" href="tel:${esc(String(o.phone).replace(/[^\d+]/g, ""))}">${PH}${esc(o.phone)}</a>${o.address ? `<a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.address)}" target="_blank" rel="noopener">${MAP}რუკა</a>` : ""}</div>
     <ul class="items">${o.items.map(i => `<li><span>${esc(i.name)}</span><span>× ${i.qty}</span></li>`).join("")}</ul>
     <div class="sum"><span>ასაღები თანხა</span><span>${gel(o.collect)}</span></div>
