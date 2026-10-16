@@ -11,7 +11,8 @@ const ROLES = ["admin", "sales", "courier"];
 const PERMS = ["order_create", "orders_all", "orders_assign", "couriers_view", "stock_view", "stock_edit", "csv", "emails", "site_edit", "users", "courier"];
 const PRESET = { admin: PERMS, sales: ["order_create", "orders_all", "stock_view"], courier: ["courier"] };
 // ადმინს ყველა უფლება აქვს, გარდა კურიერის რეჟიმისა (რომ კურიერების სიაში არ გამოჩნდეს)
-const permsOf = (u) => u.role === "admin" ? PERMS.filter((p) => p !== "courier") : String(u.perms || "").split(",").filter((p) => PERMS.includes(p));
+// თუ ბაზაში უფლებების სვეტი ჯერ არ არის (SQL 008 არ გაშვებულა), როლის მზა ნაკრები მოქმედებს
+const permsOf = (u) => u.role === "admin" ? PERMS.filter((p) => p !== "courier") : u.perms === undefined || u.perms === null ? PRESET[u.role] || [] : String(u.perms).split(",").filter((p) => PERMS.includes(p));
 const can = (u, ...ps) => { const have = permsOf(u); return ps.some((p) => have.includes(p)); };
 const cleanPerms = (list) => PERMS.filter((p) => Array.isArray(list) && list.includes(p)).join(",");
 const OPEN = ["new", "assigned", "picked", "problem"];
@@ -67,7 +68,7 @@ async function ordersFor(u, mode = "office") {
 
 const OFFICE = ["order_create", "orders_all", "orders_assign", "couriers_view", "stock_view", "stock_edit", "csv", "emails", "users"];
 async function couriersList() {
-  return (await db.all("select id, name, role, perms from users where active = true order by name")).filter((c) => can(c, "courier")).map((c) => ({ id: Number(c.id), name: c.name }));
+  return (await db.all("select * from users where active = true order by name")).filter((c) => can(c, "courier")).map((c) => ({ id: Number(c.id), name: c.name }));
 }
 async function state(u) {
   const out = { me: pub(u), tomorrow: tbilisiDay(1), today: tbilisiDay(0), imgBase: storage.publicBase(), mailReady: mailReady() };
@@ -86,7 +87,7 @@ async function state(u) {
   products = products.map((p) => ({ ...p, img: thumbs[p.id] || "" }));
   if (!can(u, "stock_edit")) products = products.map(({ id, name, price, left, hidden, img }) => ({ id, name, price, left, hidden, img }));
   Object.assign(out, { products, couriers: await couriersList(), orders });
-  if (can(u, "users")) out.users = (await db.all("select id, name, email, role, active, perms from users order by role, name")).map((x) => ({ ...num(x, "id"), active: !!x.active, perms: permsOf(x) }));
+  if (can(u, "users")) out.users = (await db.all("select * from users order by role, name")).map((x) => ({ id: Number(x.id), name: x.name, email: x.email, role: x.role, active: !!x.active, perms: permsOf(x) }));
   if (can(u, "emails")) out.emails = (await db.all("select * from emails order by id desc limit 60")).map((x) => num(x, "id", "order_id"));
   return out;
 }

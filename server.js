@@ -75,7 +75,8 @@ app.get(["/admin", "/admin/"], (req, res) => {
 
 app.get("/health", async (req, res) => {
   const s = await db.dbStatus();
-  res.json({ ok: true, db: s.ok ? "connected" : s.reason, time: new Date().toISOString() });
+  const users = s.ok ? await db.all("select * from users limit 1").catch(() => []) : [];
+  res.json({ ok: true, version: require("./package.json").version, db: s.ok ? "connected" : s.reason, perms: users[0] ? ("perms" in users[0] ? "ok" : "SQL 008 ჯერ არ გაშვებულა") : "?", time: new Date().toISOString() });
 });
 
 app.use(async (req, res) => {
