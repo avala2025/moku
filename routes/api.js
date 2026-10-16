@@ -289,13 +289,13 @@ module.exports = function register(app) {
     res.json({ ok: true });
   }));
 
-  // Google-ისთვის: მარაგშია თუ არა. თუ მარაგი ჯერ არ ჩაგიწერია, არაფერს ვამბობთ.
-  async function availability(pid) {
-    const row = await db.one("select stock_in from stock where product_id = $1", [pid]);
-    if (!row) return undefined;
-    const shop = await getShop(), v = (await stockView(shop)).find((p) => p.id === pid);
-    return v ? v.left > 0 : undefined;
+  // საიტისთვის: რამდენი ცალია თავისუფალი. მხოლოდ ის სათამაშოები, რომლის მარაგიც ჩაწერილია
+  // და მხოლოდ მაშინ, თუ პანელში "მარაგის წარწერა" ჩართულია. სხვა შემთხვევაში არაფერს ვამბობთ.
+  async function stockLeft(shop) {
+    if (shop.showStock === false) return {};
+    const has = new Set((await db.all("select product_id from stock")).map((r) => r.product_id));
+    return Object.fromEntries((await stockView(shop)).filter((p) => has.has(p.id)).map((p) => [p.id, Math.max(0, p.left)]));
   }
 
-  return { me, ensureAdmin, availability, can };
+  return { me, ensureAdmin, stockLeft, can };
 };

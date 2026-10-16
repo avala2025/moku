@@ -28,7 +28,7 @@ app.use(express.static(path.join(__dirname, "public"), {
   setHeaders: (res, file) => { if (file.includes(path.sep + "admin" + path.sep)) res.setHeader("Cache-Control", "no-cache"); },
 }));
 
-const { me, ensureAdmin, availability, can } = registerApi(app);
+const { me, ensureAdmin, stockLeft, can } = registerApi(app);
 
 // საიტის მისამართი (Google-ისთვის და გაზიარებისთვის): APP_URL, ან თუ არ არის, მოთხოვნიდან
 const baseUrl = (req) => (process.env.APP_URL || `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`).replace(/\/$/, "");
@@ -39,11 +39,11 @@ async function page(req, res, L, id) {
   try {
     const shop = await getShop(), base = baseUrl(req);
     const user = await me(req).catch(() => null), admin = !!(user && can(user, "site_edit")); // საიტის პანელი: "საიტის რედაქტირების" უფლებით
-    if (id === undefined) return sendText(req, res, render.homePage({ shop, L, base, admin, assets: ASSETS }), "text/html; charset=utf-8");
+    const stock = await stockLeft(shop); // { toolbox: 12, ... }: მარაგის წარწერებისთვის
+    if (id === undefined) return sendText(req, res, render.homePage({ shop, L, base, admin, stock, assets: ASSETS }), "text/html; charset=utf-8");
     const p = shop.products.find((x) => x.id === id && (!x.hidden || admin));
     if (!p) return sendText(req, res, render.notFound({ shop, L, base, assets: ASSETS }), "text/html; charset=utf-8", "no-cache", 404);
-    const avail = await availability(p.id);
-    sendText(req, res, render.toyPage({ shop, L, base, p, avail, admin, assets: ASSETS }), "text/html; charset=utf-8");
+    sendText(req, res, render.toyPage({ shop, L, base, p, stock, admin, assets: ASSETS }), "text/html; charset=utf-8");
   } catch (err) {
     console.error(err);
     res.status(500).send("სერვერის შეცდომა");

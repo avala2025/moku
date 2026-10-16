@@ -92,7 +92,9 @@ function client() {
     r = await sales("/api/state");
     assert.ok(r.j.products[0].left === 3 && r.j.products[0].stock_in === undefined && !r.j.users && !r.j.emails, "sales sees free stock only");
     assert.ok(!(await sales("/")).t.includes("/a/panel.js"), "sales gets no shop panel");
-    assert.ok((await anon("/toy/toolbox")).t.includes("schema.org/InStock"), "stock entered: toy shows in stock");
+    const tb = await anon("/toy/toolbox"); assert.ok(tb.t.includes("schema.org/InStock") && tb.t.includes('class="stk low">დარჩა 3 ცალი'), "stock entered: toy shows in stock, 3 left");
+    assert.ok(!(await anon("/toy/radio")).t.includes('class="stk'), "no stock entered: no label");
+    assert.ok((await anon("/en/toy/music")).t.includes('class="stk in">In stock'), "5 in stock: English label");
     const levan = r.j.couriers.find((c) => c.name === "ლევანი").id;
 
     assert.equal((await sales("/api/orders", { customer: "მარი", phone: "555", items: [{ product_id: "toolbox", qty: 4, price: 89 }] })).s, 400, "cannot oversell");
@@ -130,6 +132,9 @@ function client() {
 
     r = await admin("/api/state"); const p0 = r.j.products.find((p) => p.id === "toolbox");
     assert.equal(r.j.orders.find((x) => x.id === oid).status, "delivered"); assert.equal(p0.sold, 2); assert.equal(p0.revenue, 178); assert.equal(r.j.emails.filter((e) => e.status === "sent").length, 3);
+    await admin("/api/stock/vet", { stock_in: 0 });
+    r = await anon("/"); assert.ok(r.t.includes('card sold') && r.t.includes('soldb">ამოიწურა'), "sold-out card on the home page");
+    assert.ok((await anon("/toy/vet")).t.includes("schema.org/OutOfStock"), "sold out for Google too");
     await admin(`/api/orders/${oid}/return`, {}); r = await admin("/api/state"); assert.equal(r.j.products.find((p) => p.id === "toolbox").left, 3, "a return puts stock back");
 
     mailDown = true;
@@ -158,6 +163,8 @@ function client() {
     assert.equal((await sales("/api/shop", { data: shop })).s, 403, "sales cannot edit the shop");
     assert.equal((await anon("/api/shop", { data: shop })).s, 401);
     assert.equal((await admin("/api/shop", { data: { ...shop, discount: 500 } })).s, 400, "bad discount refused");
+    assert.equal((await admin("/api/shop", { data: { ...shop, showStock: false } })).s, 200);
+    assert.ok(!(await anon("/toy/toolbox")).t.includes('class="stk'), "stock labels switched off in the panel");
     assert.equal((await admin("/api/shop", { data: shop })).s, 200);
     r = await anon("/"); assert.ok(r.t.includes("−50%") && r.t.includes('data-ga="G-ABC123XYZ"') && r.t.includes('data-px="123456789"'), "shop shows new discount and analytics codes");
     assert.ok((await anon("/toy/toolbox")).t.includes("http://localhost:4991/storage/v1/object/public/products/u-abcdefgh12-960.webp"), "uploaded photo appears on the toy page");
@@ -179,6 +186,6 @@ function client() {
     assert.equal((await sales("/api/password", { old: "pass12345", new: "newpass123" })).s, 200);
     assert.equal((await client()("/api/login", { email: "nino@moku.ge", password: "newpass123" })).s, 200, "new password works");
     console.log("ALL CHECKS PASSED");
-  } catch (e) { console.error("FAILED:", e.message); process.exitCode = 1; }
+  } catch (e) { console.error("FAILED:", e.message, e.stack); process.exitCode = 1; }
   finally { srv && srv.kill(); smtp.close(); storageSrv.close(); }
 })();

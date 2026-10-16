@@ -29,7 +29,9 @@
     copy: "ღილაკი: ტექსტის კოპირება", how: "ღილაკი: როგორ შევუკვეთო", copied: "შეტყობინება: დაკოპირდა", copyFail: "შეტყობინება: ვერ დაკოპირდა", view: "ღილაკი: ნახვა", orderT: "შეკვეთის ტექსტი ({n} = სახელი, {p} = ფასი)",
     heroAlt: "მთავარი ფოტოს აღწერა (Google-ისთვის)", roomAlt: "ოთახის ფოტოს აღწერა (Google-ისთვის)",
     seoTitle: "Google: მთავარი გვერდის სათაური", seoDesc: "Google: მთავარი გვერდის აღწერა (150 სიმბოლომდე)", back: "ღილაკი: კოლექციაში დაბრუნება", similar: "სათამაშოს გვერდი: „კიდევ ნახე“", waBtn: "ღილაკი: WhatsApp-ით შეკვეთა",
-    consentText: "თანხმობის ზოლის ტექსტი", consentOk: "თანხმობა: ღილაკი „კი“", consentNo: "თანხმობა: ღილაკი „არა“" };
+    consentText: "თანხმობის ზოლის ტექსტი", consentOk: "თანხმობა: ღილაკი „კი“", consentNo: "თანხმობა: ღილაკი „არა“",
+    stockIn: "მარაგი: როცა ბევრია", stockLow: "მარაგი: როცა 1–3 ცალი დარჩა ({n} = რაოდენობა)", stockOut: "მარაგი: როცა ამოიწურა" };
+  var STOCK = ["stockIn", "stockLow", "stockOut"];
   var DELIV = ["top", "deliveryV", "s3", "n3t", "n3"];
   var setPath = function (o, path, v) { var k = path.split("."), last = k.pop(); k.reduce(function (a, x) { return a[x]; }, o)[last] = v; };
   var getPath = function (o, path) { return path.split(".").reduce(function (a, x) { return a == null ? a : a[x]; }, o); };
@@ -71,14 +73,18 @@
       B.innerHTML = '<div class="grid2">' + inp("discount", "ფასდაკლება, % (0 = ფასდაკლების გარეშე)", { num: 1 }) + "</div>" +
         '<table class="pt"><thead><tr><th>სათამაშო</th><th>ძველი ფასი, ₾</th><th>ახალი ფასი</th></tr></thead><tbody>' + W.products.map(function (p, i) {
           return "<tr><td>" + esc(p.ka[0]) + '</td><td><input id="a-old-' + i + '" data-p="products.' + i + '.old" type="number" min="0" inputmode="numeric" value="' + p.old + '" aria-label="ძველი ფასი"></td><td data-new="' + i + '">' + newPrice(p) + " ₾</td></tr>";
-        }).join("") + "</tbody></table><h4>მიწოდება</h4>" + DELIV.map(function (k) { return pair(k, { area: 2 }); }).join("");
+        }).join("") + "</tbody></table>" +
+        '<h4>მარაგის წარწერა</h4><p class="a-note">სათამაშოს გვერდზე და ბარათზე ჩანს „მარაგშია“, „დარჩა 2 ცალი“ ან „ამოიწურა“. რაოდენობა ავტომატურად მოდის მარაგიდან (შეკვეთები და მარაგი → მარაგი). თუ სათამაშოს მარაგი ჩაწერილი არ არის, წარწერა არ ჩანს.</p>' +
+        '<label class="f chkline" for="a-showstock"><span><input id="a-showstock" type="checkbox" data-bool="showStock" ' + (W.showStock !== false ? "checked" : "") + '> მარაგის წარწერა საიტზე ჩართულია</span></label>' +
+        STOCK.map(function (k) { return pair(k); }).join("") +
+        "<h4>მიწოდება</h4>" + DELIV.map(function (k) { return pair(k, { area: 2 }); }).join("");
     } else if (tab === "contact") {
       B.innerHTML = '<p class="a-note">ცარიელი ველი საიტზე ჩანს როგორც „მალე დაემატება“. თუ WhatsApp-ს ჩაწერ, სათამაშოს გვერდზე გამოჩნდება ღილაკი „WhatsApp-ით შეკვეთა“.</p><div class="grid2">' +
         inp("contacts.wa", "WhatsApp ნომერი (მაგ. +995 5XX XX XX XX)") + inp("contacts.ig", "Instagram (მაგ. @moku.ge)") + inp("contacts.phone", "ტელეფონი") + "</div>" +
         '<h4>სტატისტიკა</h4><p class="a-note">ჩაირთვება მხოლოდ მაშინ, როცა მყიდველი თანხმობის ზოლზე „ვეთანხმები“-ს დააჭერს. ცარიელი ველი = გამორთულია.</p><div class="grid2">' +
         inp("analytics.ga", "Google Analytics (G-XXXXXXXXXX)") + inp("analytics.pixel", "Meta Pixel (მხოლოდ ციფრები)") + "</div>";
     } else {
-      B.innerHTML = '<div class="pair"><b>ოთახის სექცია: რომელი სათამაშო იდგეს</b><label class="f" for="a-room"><span>სათამაშო</span><select id="a-room" data-p="room">' + W.products.map(function (q) { return '<option value="' + esc(q.id) + '" ' + (q.id === W.room ? "selected" : "") + ">" + esc(q.ka[0]) + "</option>"; }).join("") + '</select></label><small>ტექსტში {name} ამ სათამაშოს სახელით შეიცვლება.</small></div>' + Object.keys(W.T.ka).filter(function (k) { return DELIV.indexOf(k) < 0; }).map(function (k) { return pair(k, { area: /Text|st1|st2|^s\d$|footText|band|heroTitle|seoDesc|consentText/.test(k) ? 3 : 0 }); }).join("");
+      B.innerHTML = '<div class="pair"><b>ოთახის სექცია: რომელი სათამაშო იდგეს</b><label class="f" for="a-room"><span>სათამაშო</span><select id="a-room" data-p="room">' + W.products.map(function (q) { return '<option value="' + esc(q.id) + '" ' + (q.id === W.room ? "selected" : "") + ">" + esc(q.ka[0]) + "</option>"; }).join("") + '</select></label><small>ტექსტში {name} ამ სათამაშოს სახელით შეიცვლება.</small></div>' + Object.keys(W.T.ka).filter(function (k) { return DELIV.indexOf(k) < 0 && STOCK.indexOf(k) < 0; }).map(function (k) { return pair(k, { area: /Text|st1|st2|^s\d$|footText|band|heroTitle|seoDesc|consentText/.test(k) ? 3 : 0 }); }).join("");
     }
   }
 
@@ -99,6 +105,7 @@
     if (tab === "prices") $$("[data-new]").forEach(function (c) { c.textContent = newPrice(W.products[c.dataset.new]) + " ₾"; });
   });
   A.addEventListener("change", function (e) {
+    if (e.target.dataset.bool) { W[e.target.dataset.bool] = e.target.checked; mark(); return; }
     if (e.target.dataset.p && e.target.tagName === "SELECT" && tab === "products") render();
     if (e.target.dataset.up !== undefined) upload(+e.target.dataset.up, Array.prototype.slice.call(e.target.files));
   });

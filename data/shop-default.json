@@ -71,7 +71,10 @@
    "waBtn": "WhatsApp-ით შეკვეთა",
    "consentText": "საიტის გასაუმჯობესებლად ვიყენებთ სტატისტიკის ქუქი-ფაილებს (Google Analytics, Meta).",
    "consentOk": "ვეთანხმები",
-   "consentNo": "არა, გმადლობთ"
+   "consentNo": "არა, გმადლობთ",
+   "stockIn": "მარაგშია",
+   "stockLow": "დარჩა {n} ცალი",
+   "stockOut": "ამოიწურა"
   },
   "en": {
    "top": "Opening offer −{d}% · Next-day delivery in Tbilisi, 7 ₾",
@@ -138,7 +141,10 @@
    "waBtn": "Order on WhatsApp",
    "consentText": "We use analytics cookies (Google Analytics, Meta) to improve the site.",
    "consentOk": "Accept",
-   "consentNo": "No thanks"
+   "consentNo": "No thanks",
+   "stockIn": "In stock",
+   "stockLow": "Only {n} left",
+   "stockOut": "Sold out"
   }
  },
  "products": [
@@ -489,5 +495,6 @@
   "ga": "",
   "pixel": ""
  },
- "room": "walker"
+ "room": "walker",
+ "showStock": true
 }
