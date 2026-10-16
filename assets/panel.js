@@ -169,4 +169,7 @@
     } catch (e) { st.textContent = e.message || "ვერ შეინახა. სცადე ხელახლა."; btn.disabled = false; }
   };
   addEventListener("beforeunload", function (e) { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+  // მართვის სისტემიდან "საიტის რედაქტირება" ღილაკით მოსვლისას პანელი თავისით იხსნება (?edit=1, ?edit=texts …)
+  var m = /[?&]edit=(\w+)/.exec(location.search);
+  if (m) { if (["products", "prices", "contact", "texts"].indexOf(m[1]) >= 0) tab = m[1]; history.replaceState(null, "", location.pathname + location.hash); $("#admin-open").click(); }
 })();

@@ -62,9 +62,10 @@ function draw() {
   const role = S.me.role, tabs = tabsFor();
   if (!tabs.some(t => t[0] === tab)) tab = tabs[0]?.[0] || "";
   $("#me").hidden = false;
-  $("#me").innerHTML = `<span>${esc(S.me.name)}${S.me.name === ROLE[role] ? "" : " · " + ROLE[role]}</span>${has("site_edit") ? `<a class="link" href="/">საიტი</a>` : ""}<button class="link" data-op="pw">პაროლის შეცვლა</button><button class="link" data-op="logout">გასვლა</button>`;
-  $("#tabs").hidden = tabs.length < 2;
-  $("#tabs").innerHTML = tabs.map(([k, l]) => `<button type="button" data-tab="${k}" aria-pressed="${k === tab}">${l}</button>`).join("");
+  $("#me").innerHTML = `<span>${esc(S.me.name)}${S.me.name === ROLE[role] ? "" : " · " + ROLE[role]}</span>${has("site_edit") ? `<a class="link" href="/">საიტის ნახვა</a>` : ""}<button class="link" data-op="pw">პაროლის შეცვლა</button><button class="link" data-op="logout">გასვლა</button>`;
+  $("#tabs").hidden = tabs.length < 2 && !has("site_edit");
+  $("#tabs").innerHTML = tabs.map(([k, l]) => `<button type="button" data-tab="${k}" aria-pressed="${k === tab}">${l}</button>`).join("") +
+    (has("site_edit") ? `<a class="sitebtn" href="/?edit=products">✎ საიტის რედაქტირება</a>` : "");
   if (!F && has("order_create")) F = blank();
   app.innerHTML = (pw ? pwForm() : "") + (!tab ? `<div class="msg">უფლებები ჯერ არ გაქვს. მიმართე ადმინს.</div>` : tab === "deliver" ? courier() : tab === "home" ? home() : tab === "orders" ? orders() : tab === "neworder" ? newOrder() : tab === "couriers" ? couriersTab() : tab === "stock" ? (has("stock_edit") ? stockAdmin() : stockView()) : tab === "users" ? users() : emails());
 }
@@ -153,7 +154,7 @@ function stockAdmin() {
     <td><input id="s-i-${p.id}" data-s="${p.id}" data-k="stock_in" type="number" min="0" value="${p.stock_in}" aria-label="მიღებული"></td>
     <td>${p.price}</td><td>${p.reserved}</td><td>${p.onway}</td><td>${p.sold}</td><td>${gel(p.revenue)}</td></tr>`).join("")}</tbody>
   <tfoot><tr><td>სულ</td><td>${t("left")}</td><td>${t("stock_in")}</td><td></td><td>${t("reserved")}</td><td>${t("onway")}</td><td>${t("sold")}</td><td>${gel(t("revenue"))}</td></tr></tfoot></table></div>
-  <p class="hint" style="margin-top:12px">სათამაშოს სახელი, ფასი და ფასდაკლება იცვლება საიტზე, „ადმინი“ ღილაკიდან. <a href="/">საიტზე გადასვლა</a></p>`;
+  <p class="hint" style="margin-top:12px">სათამაშოს სახელი, ფასი, ფოტოები და ფასდაკლება იცვლება ღილაკით <a href="/?edit=products">„საიტის რედაქტირება“</a>.</p>`;
 }
 function couriersTab() {
   const days = [[S.today, "დღეს"], [S.tomorrow, "ხვალ"]];
