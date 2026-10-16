@@ -1,6 +1,7 @@
 // MOKU: მთავარი სერვერი
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
 const db = require("./db");
 const { getShop } = require("./lib/shop");
 const render = require("./lib/render");
@@ -68,9 +69,11 @@ app.get("/site.webmanifest", (req, res) => {
 });
 
 // მართვის სისტემა: ადმინი, გაყიდვები და კურიერი ერთი მისამართიდან შედიან, როლის მიხედვით სხვადასხვას ხედავენ
+// სკრიპტის მისამართს ვერსია ემატება, რომ ბრაუზერმა ძველი, დამახსოვრებული ვერსია არ აჩვენოს
+const ADMIN_VER = require("./package.json").version + "-" + Date.now().toString(36);
 app.get(["/admin", "/admin/"], (req, res) => {
-  res.setHeader("Cache-Control", "no-cache");
-  res.sendFile(path.join(__dirname, "public", "admin", "index.html"));
+  const html = fs.readFileSync(path.join(__dirname, "public", "admin", "index.html"), "utf8").replace('src="/admin/app.js"', `src="/admin/app.js?v=${ADMIN_VER}"`);
+  sendText(req, res, html, "text/html; charset=utf-8", "no-store");
 });
 
 app.get("/health", async (req, res) => {
