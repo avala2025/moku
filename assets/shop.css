@@ -296,3 +296,12 @@ dialog[open]{animation:rise .5s var(--ease)}
 .up{align-self:flex-start;cursor:pointer;padding:11px 20px}
 .pc{max-width:92px;text-align:center}
 .pp-shot .off{right:18px;top:18px}
+/* ქართული ასოები: ფართო დაშორება (ლათინური CAPS-ისთვის) ქართულ ტექსტს ფანტავს, ამიტომ ვამცირებთ და ოდნავ ვზრდით ზომას */
+:lang(ka) :is(.eyebrow,.topline,.meta span,.contact b,.info dt,.pp-info dt,.dev-t,.rings small,.pt th){letter-spacing:.05em;font-size:12.5px}
+:lang(ka) .topline{font-size:12px}
+/* ტელეფონზე კატეგორიები ერთ ხაზზე, გვერდზე გადასაწევი */
+@media (max-width:640px){
+  .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-inline:calc(-1 * var(--gutter));padding-inline:var(--gutter)}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{white-space:nowrap;flex:none}
+}
