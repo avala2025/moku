@@ -20,6 +20,16 @@ app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "DENY");
   next();
 });
+// მთავარ მისამართზე გადამისამართება: ძველი railway.app მისამართი და www → APP_URL (მაგ. https://moku.ge).
+// მხოლოდ GET/HEAD, რომ ფორმები და API არ გაფუჭდეს. /health არ გადამისამართდება.
+const MAIN = (() => { try { return new URL(process.env.APP_URL || ""); } catch { return null; } })();
+app.use((req, res, next) => {
+  const host = String(req.headers.host || "").toLowerCase().split(":")[0];
+  const url = req.originalUrl || req.url || "/";
+  if (!MAIN || host === MAIN.hostname || url.split("?")[0] === "/health" || !["GET", "HEAD"].includes(req.method)) return next();
+  if (host.endsWith(".up.railway.app") || host === "www." + MAIN.hostname) { res.statusCode = 301; res.setHeader("Location", MAIN.origin + url); return res.end(); }
+  next();
+});
 app.get("/a/:file", serveAsset);
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public"), {

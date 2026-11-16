@@ -65,6 +65,10 @@ function client() {
     r = await fetch(B + "/", { headers: { "accept-encoding": "gzip" } }); assert.equal(r.headers.get("content-encoding"), "gzip", "pages are compressed");
     r = await fetch(B + "/a/shop.css?v=1"); assert.ok(/immutable/.test(r.headers.get("cache-control")), "styles cached long");
     r = await anon("/sitemap.xml"); assert.ok(r.t.includes("/en/toy/toolbox") && r.t.includes('hreflang="ka"'), "sitemap");
+    const hostGet = (host, p) => new Promise((ok) => require("http").get({ host: "localhost", port: PORT, path: p, headers: { host } }, (x) => { x.resume(); ok([x.statusCode, x.headers.location]); }));
+    assert.deepEqual(await hostGet("www.moku.ge", "/toy/radio?a=1"), [301, "https://moku.ge/toy/radio?a=1"], "www redirects to main domain");
+    assert.deepEqual(await hostGet("moku-production.up.railway.app", "/en"), [301, "https://moku.ge/en"], "old railway address redirects");
+    assert.equal((await hostGet("moku-production.up.railway.app", "/health"))[0] === 301, false, "health never redirects");
     r = await anon("/robots.txt"); assert.ok(r.t.includes("Disallow: /admin") && r.t.includes("sitemap.xml"), "robots");
     assert.equal((await anon("/img/toolbox-1-480.webp")).s, 200, "webp photos served");
     assert.equal((await anon("/favicon.svg")).s, 200, "icon");
