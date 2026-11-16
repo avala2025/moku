@@ -28,13 +28,13 @@
    "colEyebrow": "პირველი კოლექცია",
    "colTitle": "ათი სათამაშო",
    "all": "ყველა",
-   "build": "აწყობა",
-   "music": "მუსიკა",
-   "role": "როლური თამაში",
-   "boards": "დაფები და მაგიდები",
+   "build": "ვაწყობთ და ვქმნით",
+   "music": "მუსიკა და ხმა",
+   "role": "ვთამაშობთ უფროსობანას",
+   "boards": "ბიზიბორდები და მაგიდები",
    "roomEyebrow": "ოთახში",
    "roomTitle": "სათამაშო, რომლის დამალვაც არ მოგინდება",
-   "roomText": "{name} ჯერ სიარულში ეხმარება, მერე კი სამზარეულოდ რჩება. თამაშის შემდეგაც ოთახში ისე დგას, როგორც ავეჯის ნაწილი.",
+   "roomText": "„{name}“ ჯერ სიარულში ეხმარება, მერე კი სამზარეულოდ რჩება. თამაშის შემდეგაც ოთახში ისე დგას, როგორც ავეჯის ნაწილი.",
    "roomCta": "ურიკის ნახვა",
    "roomAlt": "ხის სასიარულო ურიკა ოთახში",
    "stEyebrow": "სახელის შესახებ",
@@ -74,7 +74,9 @@
    "consentNo": "არა, გმადლობთ",
    "stockIn": "მარაგშია",
    "stockLow": "დარჩა {n} ცალი",
-   "stockOut": "ამოიწურა"
+   "stockOut": "ამოიწურა",
+   "age": "ასაკი",
+   "dev": "რას ავითარებს"
   },
   "en": {
    "top": "Opening offer −{d}% · Next-day delivery in Tbilisi, 7 ₾",
@@ -98,10 +100,10 @@
    "colEyebrow": "First collection",
    "colTitle": "Ten toys",
    "all": "All",
-   "build": "Building",
-   "music": "Music",
-   "role": "Pretend play",
-   "boards": "Boards and tables",
+   "build": "Build & Create",
+   "music": "Music & Sound",
+   "role": "Pretend Play",
+   "boards": "Busy Boards & Tables",
    "roomEyebrow": "In the room",
    "roomTitle": "A toy you will not want to put away",
    "roomText": "{name} first helps with walking, then stays on as a kitchen. After play it stands in the room like a piece of furniture.",
@@ -144,7 +146,9 @@
    "consentNo": "No thanks",
    "stockIn": "In stock",
    "stockLow": "Only {n} left",
-   "stockOut": "Sold out"
+   "stockOut": "Sold out",
+   "age": "Age",
+   "dev": "What it develops"
   }
  },
  "products": [
@@ -175,16 +179,22 @@
     ]
    ],
    "ka": [
-    "ხელსაწყოების ყუთი",
-    "ხის ყუთი ჩაქუჩით, ქანჩის გასაღებით, სახაზავით და სათამაშო ბურღით. ხრახნები და ფირფიტები ერთმანეთს უერთდება, ასე რომ ბავშვი თავად აწყობს მანქანას, თვითმფრინავს ან რასაც მოიფიქრებს.",
+    "ოსტატი",
+    "პატარა ოსტატს საკუთარი ყუთი სჭირდება. შიგნით არის ჩაქუჩი, ქანჩის გასაღები, სახაზავი და სათამაშო ბურღი. ხრახნები და ფირფიტები ერთმანეთს უერთდება, ასე რომ ბავშვი თავად აწყობს მანქანას, თვითმფრინავს ან რასაც მოიფიქრებს.",
     "ხე; ბურღი და ხრახნები პლასტმასისაა",
-    ""
+    "",
+    "ხის ხელსაწყოების ყუთი ბურღით",
+    "✋ წვრილი მოტორიკა · 🧩 აწყობა და ფანტაზია · 🛠 ხელსაწყოების გაცნობა",
+    "3+ წელი"
    ],
    "en": [
-    "Wooden Tool Box",
-    "A wooden case with a hammer, wrench, ruler and a toy drill. Bolts and plates join together, so a child builds a car, a plane or anything they think up.",
+    "Little Builder",
+    "Every little builder needs a box of their own. Inside: a hammer, a wrench, a ruler and a toy drill. Bolts and plates join together, so a child builds a car, a plane or anything they think up.",
     "Wood; plastic drill and bolts",
-    ""
+    "",
+    "Wooden tool box with a toy drill",
+    "✋ Fine motor skills · 🧩 Building and imagination · 🛠 Getting to know tools",
+    "3+ years"
    ],
    "old": 127,
    "hidden": false
@@ -208,16 +218,22 @@
     ]
    ],
    "ka": [
-    "მუსიკალური მაგიდა",
-    "ერთ მაგიდაზე ორი დოლი, ქსილოფონი, თეფში, ზარი და ზანზალაკებია. ჯოხები თავის ბუდეებში ინახება.",
+    "ორკესტრი",
+    "მთელი ორკესტრი ერთ მაგიდაზე: ორი დოლი, ქსილოფონი, თეფში, ზარი და ზანზალაკები. ჯოხები თავის ბუდეებში ინახება, რომ შემდეგ კონცერტამდე არ დაიკარგოს.",
     "ხე; ლითონის დეტალები",
-    ""
+    "",
+    "მუსიკალური მაგიდა: დოლები, ქსილოფონი, ზარები",
+    "🎵 რიტმი და სმენა · ✋ ხელების კოორდინაცია · 💡 მიზეზი და შედეგი",
+    "1+ წელი"
    ],
    "en": [
-    "Music Table",
-    "Two drums, a xylophone, a cymbal, a bell and chimes on one table. The sticks rest in their own holders.",
+    "Little Orchestra",
+    "A whole orchestra on one table: two drums, a xylophone, a cymbal, a bell and chimes. The sticks rest in their own holders, so they don't get lost before the next concert.",
     "Wood; metal parts",
-    ""
+    "",
+    "Music table: drums, xylophone, bells",
+    "🎵 Rhythm and listening · ✋ Hand coordination · 💡 Cause and effect",
+    "1+ years"
    ],
    "old": 156,
    "hidden": false
@@ -245,16 +261,22 @@
     ]
    ],
    "ka": [
-    "რკინიგზა",
-    "ხის ლიანდაგი ორ დონეზე, ხიდით, გვირაბით და მატარებლით. ნაწილები სხვადასხვანაირად ეწყობა, ასე რომ მარშრუტი ყოველ ჯერზე ახალია.",
+    "ექსპრესი",
+    "ყოველ ჯერზე ახალი მარშრუტი. ხის ლიანდაგი ორ დონეზე ეწყობა, ხიდით, გვირაბით და მატარებლით, ნაწილები კი სხვადასხვანაირად ერთდება.",
     "ხის ლიანდაგი; ხიდი და საყრდენები პლასტმასისაა",
-    ""
+    "",
+    "ორსართულიანი ხის რკინიგზა ხიდით და გვირაბით",
+    "🧩 სივრცითი აზროვნება · 🛤 დაგეგმვა და აწყობა · 🎭 ისტორიების გამოგონება",
+    "3+ წელი"
    ],
    "en": [
-    "Wooden Railway",
-    "A two-level wooden track with a bridge, a tunnel and a train. The pieces fit together in different ways, so the route changes every time.",
+    "Express",
+    "A new route every time. The wooden track builds on two levels, with a bridge, a tunnel and a train, and the pieces fit together in different ways.",
     "Wooden track; plastic bridge and supports",
-    ""
+    "",
+    "Two-level wooden railway with a bridge and a tunnel",
+    "🧩 Spatial thinking · 🛤 Planning and building · 🎭 Making up stories",
+    "3+ years"
    ],
    "old": 127,
    "hidden": false
@@ -274,16 +296,22 @@
     ]
    ],
    "ka": [
-    "სამზარეულო-ურიკა",
-    "სასიარულო ურიკა, რომელიც თან სამზარეულოა: ქვაბი, ტაფა, ღუმელი და გვერდებზე სათამაშო პანელები.",
+    "პირველი ნაბიჯი",
+    "ჯერ პირველ ნაბიჯებში ეხმარება, მერე პირველ „სადილებში“. სასიარულო ურიკა, რომელიც თან სამზარეულოა: ქვაბი, ტაფა, ღუმელი და გვერდებზე სათამაშო პანელები.",
     "ხე",
-    "45.5 × 35 × 31 სმ"
+    "45.5 × 35 × 31 სმ",
+    "სასიარულო ურიკა-სამზარეულო",
+    "🚶 სიარული და წონასწორობა · ✋ წვრილი მოტორიკა · 🎭 როლური თამაში",
+    "1+ წელი"
    ],
    "en": [
-    "Kitchen Walker",
-    "A push walker that is also a kitchen: a pot, a pan, an oven and activity panels on the sides.",
+    "First Steps",
+    "First it helps with the first steps, then with the first \"dinners\". A push walker that is also a kitchen: a pot, a pan, an oven and activity panels on the sides.",
     "Wood",
-    "45.5 × 35 × 31 cm"
+    "45.5 × 35 × 31 cm",
+    "Kitchen push walker",
+    "🚶 Walking and balance · ✋ Fine motor skills · 🎭 Pretend play",
+    "1+ years"
    ],
    "old": 327,
    "hidden": false
@@ -303,16 +331,22 @@
     ]
    ],
    "ka": [
-    "მაგნიტოფონის დაფა",
-    "ძველი მაგნიტოფონის მსგავსი ხის დაფა: ჩამრთველები, ღილაკები, სახელურები, ნათურები, ხმის ჩამწერი, 5 სიმღერა გადასართავად, მძივების ლაბირინთი და დახატული პიანინოს კლავიშები. აქვს ტარების სახელური.",
+    "რეტრო",
+    "ყველა ღილაკი რაღაცას აკეთებს, და ბავშვი სწორედ ამას აღმოაჩენს. ძველი მაგნიტოფონის მსგავს ხის დაფაზეა ჩამრთველები, სახელურები, ნათურები, ხმის ჩამწერი, 5 სიმღერა გადასართავად, მძივების ლაბირინთი და დახატული პიანინოს კლავიშები. აქვს ტარების სახელური.",
     "ხე; ნათურები და ღილაკები",
-    ""
+    "",
+    "მაგნიტოფონის ბიზიბორდი: ნათურები, მელოდიები, ხმის ჩამწერი",
+    "💡 მიზეზი და შედეგი · ✋ წვრილი მოტორიკა · 🎵 სმენა",
+    "1+ წელი"
    ],
    "en": [
-    "Tape Recorder Busy Board",
-    "A wooden board styled like an old tape recorder: switches, buttons, knobs, lights, a voice recorder, 5 songs to switch between, a bead maze and printed piano keys. Has a carrying handle.",
+    "Retro",
+    "Every button does something, and that is exactly what a child discovers. A wooden board styled like an old tape recorder: switches, knobs, lights, a voice recorder, 5 songs to switch between, a bead maze and printed piano keys. Has a carrying handle.",
     "Wood; lights and buttons",
-    ""
+    "",
+    "Tape recorder busy board: lights, melodies, voice recorder",
+    "💡 Cause and effect · ✋ Fine motor skills · 🎵 Listening",
+    "1+ years"
    ],
    "old": 90,
    "hidden": false
@@ -336,16 +370,22 @@
     ]
    ],
    "ka": [
-    "სატუალეტო მაგიდა",
-    "მაგიდა სარკით და ხის აქსესუარებით: ფენი, სავარცხელი, სუნამო და ფრჩხილის ლაქი.",
+    "სარკე-სარკე",
+    "ყველაფერი ისე, როგორც დედას აქვს, ოღონდ ხისგან. მაგიდაა სარკით, ფენით, სავარცხლით, სუნამოთი და ფრჩხილის ლაქით.",
     "ხე",
-    "დაახლ. 30.5 × 21 × 21 სმ"
+    "დაახლ. 30.5 × 21 × 21 სმ",
+    "ხის სატუალეტო მაგიდა სარკით და აქსესუარებით",
+    "🎭 როლური თამაში · 💬 მეტყველება და ისტორიები · ✋ წვრილი მოტორიკა",
+    "3+ წელი"
    ],
    "en": [
-    "Vanity Table",
-    "A table with a mirror and wooden accessories: a hairdryer, a comb, perfume and nail polish.",
+    "Mirror Mirror",
+    "Everything just like mum's, only made of wood. A table with a mirror, a hairdryer, a comb, perfume and nail polish.",
     "Wood",
-    "approx. 30.5 × 21 × 21 cm"
+    "approx. 30.5 × 21 × 21 cm",
+    "Wooden vanity table with mirror and accessories",
+    "🎭 Pretend play · 💬 Language and storytelling · ✋ Fine motor skills",
+    "3+ years"
    ],
    "old": 227,
    "hidden": false
@@ -369,16 +409,22 @@
     ]
    ],
    "ka": [
-    "ვეტერინარის ნაკრები",
-    "ხის სახლი სახელურით, რბილი ძაღლი და ექიმის ხელსაწყოები: სტეტოსკოპი, შპრიცი, თერმომეტრი და მაკრატელი.",
+    "ჰავ-ჰავის კლინიკა",
+    "ლეკვს ექიმი სჭირდება! ნაკრებშია ხის სახლი სახელურით, რბილი ძაღლი და ექიმის ხელსაწყოები: სტეტოსკოპი, შპრიცი, თერმომეტრი და მაკრატელი.",
     "ხე; რბილი სათამაშო ძაღლი",
-    ""
+    "",
+    "ვეტერინარის ნაკრები რბილი ლეკვით",
+    "❤️ ზრუნვა და ემპათია · 🎭 როლური თამაში · 💬 მეტყველება",
+    "3+ წელი"
    ],
    "en": [
-    "Vet Set",
-    "A wooden carrier, a soft dog and a doctor's kit: stethoscope, syringe, thermometer and scissors.",
+    "Puppy Clinic",
+    "The puppy needs a doctor! A wooden house with a handle, a soft dog and doctor's tools: a stethoscope, a syringe, a thermometer and scissors.",
     "Wood; soft toy dog",
-    ""
+    "",
+    "Vet set with a soft puppy",
+    "❤️ Care and empathy · 🎭 Pretend play · 💬 Language",
+    "3+ years"
    ],
    "old": 164,
    "hidden": false
@@ -402,16 +448,22 @@
     ]
    ],
    "ka": [
-    "აქტივობების მაგიდა",
-    "ნახევარმთვარის ფორმის მაგიდა მძივების ლაბირინთით, კბილანებით, ფიგურების დასაწყობით, ქსილოფონით და სტაფილოების ბოსტნით.",
+    "აღმოჩენა",
+    "ერთ მაგიდაზე ხუთი სხვადასხვა თამაშია, და ერთზე მეტი ბავშვი ეტევა. ნახევარმთვარის ფორმის მაგიდაზე არის მძივების ლაბირინთი, კბილანები, ფიგურების დასაწყობი, ქსილოფონი და სტაფილოების ბოსტანი.",
     "ხე",
-    ""
+    "",
+    "განმავითარებელი მაგიდა: ლაბირინთი, კბილანები, სორტერი",
+    "✋ წვრილი მოტორიკა · 🔺 ფორმები და ფერები · 👫 ერთად თამაში",
+    "1+ წელი"
    ],
    "en": [
-    "Activity Table",
-    "A crescent table with a bead maze, gears, shape stackers, a xylophone and a carrot patch.",
+    "Discovery",
+    "Five different games on one table, with room for more than one child. A half-moon table with a bead maze, gears, a shape sorter, a xylophone and a carrot garden.",
     "Wood",
-    ""
+    "",
+    "Activity table: bead maze, gears, shape sorter",
+    "✋ Fine motor skills · 🔺 Shapes and colours · 👫 Playing together",
+    "1+ years"
    ],
    "old": 313,
    "hidden": false
@@ -439,16 +491,22 @@
     ]
    ],
    "ka": [
-    "ჩაქუჩი/თევზაობის თამაში",
-    "ერთ ყუთში სამი თამაშია: ფიგურების ჩარტყმა ჩაქუჩით, ქსილოფონი და თევზაობა ანკესით.",
+    "ბუმ-ბუმ",
+    "ერთ ყუთში სამი თამაშია: ფიგურების ჩარტყმა ჩაქუჩით, ქსილოფონი და თევზაობა ანკესით. ენერგიისთვისაც და სიმშვიდისთვისაც.",
     "ხე",
-    ""
+    "",
+    "3-ში-1: ჩაქუჩის თამაში, ქსილოფონი, თევზაობა",
+    "🎯 ხელისა და თვალის კოორდინაცია · 🎵 რიტმი · 🧘 მოთმინება და კონცენტრაცია",
+    "2+ წელი"
    ],
    "en": [
-    "Hammer & Fishing Game",
-    "Three games in one box: tapping the figures with a mallet, a xylophone and fishing with a rod.",
+    "Boom-Boom",
+    "Three games in one box: whack the figures with a hammer, play the xylophone and go fishing with a rod. For energetic moments and calm ones.",
     "Wood",
-    ""
+    "",
+    "3-in-1: hammer game, xylophone, fishing",
+    "🎯 Hand-eye coordination · 🎵 Rhythm · 🧘 Patience and focus",
+    "2+ years"
    ],
    "old": 113,
    "hidden": false
@@ -476,16 +534,22 @@
     ]
    ],
    "ka": [
-    "საჭის დაფა",
-    "საჭე, სიჩქარის გადამრთველი, მაჩვენებლები, ნათურები და ღილაკები ერთ ხის დაფაზე.",
+    "პატარა მძღოლი",
+    "საჭე ხელში და მივდივართ! ერთ ხის დაფაზეა საჭე, სიჩქარის გადამრთველი, მაჩვენებლები, ნათურები და ღილაკები.",
     "ხე; ნათურები და ჩამრთველები",
-    ""
+    "",
+    "საჭის ბიზიბორდი: ჩამრთველები, ნათურები",
+    "💡 მიზეზი და შედეგი · ✋ წვრილი მოტორიკა · 🎭 წარმოსახვა",
+    "1+ წელი"
    ],
    "en": [
-    "Steering Wheel Board",
-    "A steering wheel, gear stick, dials, lights and buttons on one wooden board.",
+    "Little Driver",
+    "Hands on the wheel and off we go! A steering wheel, a gear lever, dials, lights and buttons on one wooden board.",
     "Wood; lights and switches",
-    ""
+    "",
+    "Steering wheel busy board: switches, lights",
+    "💡 Cause and effect · ✋ Fine motor skills · 🎭 Imagination",
+    "1+ years"
    ],
    "old": 227,
    "hidden": false

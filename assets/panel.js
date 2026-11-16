@@ -30,7 +30,7 @@
     heroAlt: "მთავარი ფოტოს აღწერა (Google-ისთვის)", roomAlt: "ოთახის ფოტოს აღწერა (Google-ისთვის)",
     seoTitle: "Google: მთავარი გვერდის სათაური", seoDesc: "Google: მთავარი გვერდის აღწერა (150 სიმბოლომდე)", back: "ღილაკი: კოლექციაში დაბრუნება", similar: "სათამაშოს გვერდი: „კიდევ ნახე“", waBtn: "ღილაკი: WhatsApp-ით შეკვეთა",
     consentText: "თანხმობის ზოლის ტექსტი", consentOk: "თანხმობა: ღილაკი „კი“", consentNo: "თანხმობა: ღილაკი „არა“",
-    stockIn: "მარაგი: როცა ბევრია", stockLow: "მარაგი: როცა 1–3 ცალი დარჩა ({n} = რაოდენობა)", stockOut: "მარაგი: როცა ამოიწურა" };
+    age: "სათამაშოს გვერდი: სიტყვა „ასაკი“", dev: "სათამაშოს გვერდი: „რას ავითარებს“", stockIn: "მარაგი: როცა ბევრია", stockLow: "მარაგი: როცა 1–3 ცალი დარჩა ({n} = რაოდენობა)", stockOut: "მარაგი: როცა ამოიწურა" };
   var STOCK = ["stockIn", "stockLow", "stockOut"];
   var DELIV = ["top", "deliveryV", "s3", "n3t", "n3"];
   var setPath = function (o, path, v) { var k = path.split("."), last = k.pop(); k.reduce(function (a, x) { return a[x]; }, o)[last] = v; };
@@ -58,6 +58,9 @@
             inp("products." + i + ".ka.1", "აღწერა (ქართ.)", { area: 4 }) + inp("products." + i + ".en.1", "Description (Eng.)", { area: 4 }) +
             inp("products." + i + ".ka.2", "მასალა (ქართ.)") + inp("products." + i + ".en.2", "Material (Eng.)") +
             inp("products." + i + ".ka.3", "ზომა (ქართ.)") + inp("products." + i + ".en.3", "Size (Eng.)") +
+            inp("products." + i + ".ka.4", "აღწერა სახელის ქვეშ (ქართ.)") + inp("products." + i + ".en.4", "Subtitle under the name (Eng.)") +
+            inp("products." + i + ".ka.5", "რას ავითარებს (ქართ., გამოყავი · ნიშნით)", { area: 2 }) + inp("products." + i + ".en.5", "What it develops (Eng., separate with ·)", { area: 2 }) +
+            inp("products." + i + ".ka.6", "ასაკი (ქართ., მაგ. 1+ წელი)") + inp("products." + i + ".en.6", "Age (Eng., e.g. 1+ years)") +
             inp("products." + i + ".old", "ფასი ფასდაკლებამდე, ₾", { num: 1 }) +
             '<label class="f" for="a-cat-' + i + '"><span>კატეგორია</span><select id="a-cat-' + i + '" data-p="products.' + i + '.cat">' + CATS.map(function (c) { return '<option value="' + c + '" ' + (c === p.cat ? "selected" : "") + ">" + esc(W.T.ka[c]) + "</option>"; }).join("") + "</select></label>" +
             '<label class="f" for="a-tint-' + i + '"><span>ფონის ფერი</span><select id="a-tint-' + i + '" data-p="products.' + i + '.tint">' + TINTS.map(function (c, k) { return '<option value="' + c + '" ' + (c === p.tint ? "selected" : "") + ">" + ["ხისფერი", "ცისფერი", "მწვანე", "ვარდისფერი"][k] + "</option>"; }).join("") + "</select></label>" +
@@ -120,7 +123,7 @@
     if (a === "cut") P[i].imgs[j][1] = P[i].imgs[j][1] ? 0 : 1;
     if (a === "rmimg") P[i].imgs.splice(j, 1);
     if (a === "del") { if (delId !== P[i].id) { delId = P[i].id; render(); return; } P.splice(i, 1); delId = null; }
-    if (a === "add") { var id = "p" + Date.now().toString(36); P.push({ id: id, cat: "build", tint: "--birch", imgs: [], ka: ["ახალი სათამაშო", "", "ხე", ""], en: ["New toy", "", "Wood", ""], old: 0, hidden: true }); openId = id; }
+    if (a === "add") { var id = "p" + Date.now().toString(36); P.push({ id: id, cat: "build", tint: "--birch", imgs: [], ka: ["ახალი სათამაშო", "", "ხე", "", "", "", ""], en: ["New toy", "", "Wood", "", "", "", ""], old: 0, hidden: true }); openId = id; }
     mark(); render();
   });
 

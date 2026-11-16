@@ -54,12 +54,12 @@ function client() {
 
     let r = await anon("/");
     assert.equal(r.s, 200);
-    assert.ok(r.t.includes("ხელსაწყოების ყუთი") && r.t.includes('href="/toy/toolbox"'), "home page lists toys with links, price-list names");
+    assert.ok(r.t.includes("ოსტატი") && r.t.includes("ხის ხელსაწყოების ყუთი ბურღით") && r.t.includes('href="/toy/toolbox"'), "home page lists toys with name and subtitle");
     assert.ok(r.t.includes('rel="canonical"') && r.t.includes('hreflang="en"') && r.t.includes('"@type":"Organization"'), "home SEO tags");
     assert.ok(!r.t.includes("/a/panel.js"), "no admin panel for visitors");
-    r = await anon("/en"); assert.ok(r.t.includes('lang="en"') && r.t.includes("Wooden Tool Box") && r.t.includes('href="/en/toy/toolbox"'), "English home");
+    r = await anon("/en"); assert.ok(r.t.includes('lang="en"') && r.t.includes("Little Builder") && r.t.includes('href="/en/toy/toolbox"'), "English home");
     r = await anon("/toy/toolbox"); assert.equal(r.s, 200);
-    assert.ok(r.t.includes("<h1>ხელსაწყოების ყუთი</h1>") && r.t.includes('"@type":"Product"') && r.t.includes('"price":"89"') && r.t.includes('"priceCurrency":"GEL"') && r.t.includes("schema.org/InStock"), "toy page with product data, in stock from initial stock");
+    assert.ok(r.t.includes("<h1>ოსტატი</h1>") && r.t.includes("ოსტატი · ხის ხელსაწყოების ყუთი ბურღით · MOKU") && r.t.includes("3+ წელი") && r.t.includes("<li>✋ წვრილი მოტორიკა</li>") && r.t.includes('"@type":"Product"') && r.t.includes('"price":"89"') && r.t.includes('"priceCurrency":"GEL"'), "toy page with product data, name, subtitle, age, skills");
     assert.ok(r.t.includes('og:image" content="') && r.t.includes("/img/toolbox-1.jpg"), "share image");
     assert.equal((await anon("/toy/nothing")).s, 404); assert.equal((await anon("/nowhere")).s, 404);
     r = await fetch(B + "/", { headers: { "accept-encoding": "gzip" } }); assert.equal(r.headers.get("content-encoding"), "gzip", "pages are compressed");
@@ -176,7 +176,7 @@ function client() {
     r = await sales("/api/customer?phone=555112233"); assert.equal(r.j.customer, "მარი", "customer lookup by phone");
     assert.equal((await sales("/api/customer?phone=123")).j.customer, undefined, "short phone: nothing");
     r = await fetch(B + "/api/orders.csv", { headers: { cookie: adminCookie } }); assert.equal(r.status, 200); const csv = await r.text();
-    assert.ok(csv.includes("მარი") && csv.includes("ხელსაწყოების ყუთი × 2") && r.headers.get("content-disposition").includes("moku-orders"), "csv export");
+    assert.ok(csv.includes("მარი") && csv.includes("ოსტატი · ხის ხელსაწყოების ყუთი ბურღით × 2") && r.headers.get("content-disposition").includes("moku-orders"), "csv export");
     assert.equal((await sales("/api/orders.csv")).s, 403, "sales cannot export");
     r = await sales("/api/state"); assert.ok(r.j.today && r.j.products[0].img === "toolbox-1", "sales gets thumbs and today");
     assert.equal((await sales("/api/users", { name: "h", email: "h@h.ge", role: "admin", password: "12345678" })).s, 403);

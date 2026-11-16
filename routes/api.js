@@ -49,7 +49,7 @@ async function stockView(shop) {
   const q = (id, ...st) => st.reduce((a, s) => a + (by[id]?.[s]?.q || 0), 0);
   return shop.products.map((p) => {
     const stock_in = got[p.id] || 0, reserved = q(p.id, "new", "assigned"), onway = q(p.id, "picked", "problem"), sold = q(p.id, "delivered");
-    return { id: p.id, name: p.ka[0], price: nowPrice(shop, p), hidden: !!p.hidden, stock_in, reserved, onway, sold, left: stock_in - reserved - onway - sold, revenue: by[p.id]?.delivered?.rev || 0 };
+    return { id: p.id, name: p.ka[0] + (p.ka[4] ? " · " + ((x) => (x.split(":")[0].trim().length < 12 ? x : x.split(":")[0].trim()))(String(p.ka[4]).trim()) : ""), price: nowPrice(shop, p), hidden: !!p.hidden, stock_in, reserved, onway, sold, left: stock_in - reserved - onway - sold, revenue: by[p.id]?.delivered?.rev || 0 };
   });
 }
 
