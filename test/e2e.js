@@ -122,7 +122,7 @@ function client() {
     assert.ok(r.j.deliveries[0].items[0].price === undefined && r.j.deliveries[0].email === undefined, "courier sees no prices and no customer e-mail");
     assert.equal((await c1(`/api/orders/${oid}/deliver`, {})).s, 400, "cannot deliver before pick-up");
     assert.equal((await c1(`/api/orders/${oid}/pick`, {})).s, 200); await wait(400);
-    assert.equal(om().length, 3); assert.ok(om()[2].subject.includes("აიღო") && om()[2].to === "mari@example.com");
+    assert.equal(om().length, 3); assert.ok(om()[2].subject.includes("გზაშია") && om()[2].to === "mari@example.com");
     assert.equal((await c1(`/api/orders/${oid}/deliver`, { note: "ჩაბარდა მეზობელს" })).s, 200);
     r = await c1("/api/state"); assert.equal(r.j.deliveries[0].status, "delivered", "delivered today stays visible to the courier");
     // უფლებების გადაცემა: გიოს ვაძლევთ "ყველა შეკვეთის ნახვას" და მაშინვე ხედავს; საკუთარს ვერ ცვლის; ადმინისას ვერ ცვლის
