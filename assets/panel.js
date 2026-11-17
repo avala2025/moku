@@ -5,7 +5,7 @@
   var $ = function (s) { return document.querySelector(s); }, $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
   var CATS = ["build", "music", "role", "boards"], TINTS = ["--birch", "--mist", "--sage", "--blush"];
-  var W = null, IMGBASE = "", UPLOADS = false, dirty = false, tab = "products", openId = null, delId = null, busy = false;
+  var W = null, IMGBASE = "", UPLOADS = false, PERMS = [], dirty = false, tab = "products", openId = null, delId = null, busy = false;
 
   document.body.insertAdjacentHTML("beforeend",
     '<button type="button" id="admin-open">ადმინი</button>' +
@@ -31,6 +31,7 @@
     seoTitle: "Google: მთავარი გვერდის სათაური", seoDesc: "Google: მთავარი გვერდის აღწერა (150 სიმბოლომდე)", back: "ღილაკი: კოლექციაში დაბრუნება", similar: "სათამაშოს გვერდი: „კიდევ ნახე“", waBtn: "ღილაკი: WhatsApp-ით შეკვეთა",
     consentText: "თანხმობის ზოლის ტექსტი", consentOk: "თანხმობა: ღილაკი „კი“", consentNo: "თანხმობა: ღილაკი „არა“",
     age: "სათამაშოს გვერდი: სიტყვა „ასაკი“", dev: "სათამაშოს გვერდი: „რას ავითარებს“", stockIn: "მარაგი: როცა ბევრია", stockLow: "მარაგი: როცა 1–3 ცალი დარჩა ({n} = რაოდენობა)", stockOut: "მარაგი: როცა ამოიწურა" };
+  var can = function (k) { return PERMS.indexOf("site_" + k) >= 0; };
   var STOCK = ["stockIn", "stockLow", "stockOut"];
   var DELIV = ["top", "deliveryV", "s3", "n3t", "n3"];
   var setPath = function (o, path, v) { var k = path.split("."), last = k.pop(); k.reduce(function (a, x) { return a[x]; }, o)[last] = v; };
@@ -61,7 +62,7 @@
             inp("products." + i + ".ka.4", "აღწერა სახელის ქვეშ (ქართ.)") + inp("products." + i + ".en.4", "Subtitle under the name (Eng.)") +
             inp("products." + i + ".ka.5", "რას ავითარებს (ქართ., გამოყავი · ნიშნით)", { area: 2 }) + inp("products." + i + ".en.5", "What it develops (Eng., separate with ·)", { area: 2 }) +
             inp("products." + i + ".ka.6", "ასაკი (ქართ., მაგ. 1+ წელი)") + inp("products." + i + ".en.6", "Age (Eng., e.g. 1+ years)") +
-            inp("products." + i + ".old", "ფასი ფასდაკლებამდე, ₾", { num: 1 }) +
+            (can("prices") ? inp("products." + i + ".old", "ფასი ფასდაკლებამდე, ₾", { num: 1 }) : "") +
             '<label class="f" for="a-cat-' + i + '"><span>კატეგორია</span><select id="a-cat-' + i + '" data-p="products.' + i + '.cat">' + CATS.map(function (c) { return '<option value="' + c + '" ' + (c === p.cat ? "selected" : "") + ">" + esc(W.T.ka[c]) + "</option>"; }).join("") + "</select></label>" +
             '<label class="f" for="a-tint-' + i + '"><span>ფონის ფერი</span><select id="a-tint-' + i + '" data-p="products.' + i + '.tint">' + TINTS.map(function (c, k) { return '<option value="' + c + '" ' + (c === p.tint ? "selected" : "") + ">" + ["ხისფერი", "ცისფერი", "მწვანე", "ვარდისფერი"][k] + "</option>"; }).join("") + "</select></label>" +
             '<div class="f w"><span>ფოტოები (პირველი მთავარია; „თეთრი ფონი“: ფოტო ფერად ფონზე ჩაჯდება)</span><div class="ph">' + (p.imgs.map(function (x, k) {
@@ -94,7 +95,11 @@
   async function load() {
     var r = await fetch("/api/shop", { credentials: "same-origin" }), j = await r.json().catch(function () { return {}; });
     if (!r.ok) throw new Error(j.error || "ვერ ჩაიტვირთა");
-    W = j.data; IMGBASE = j.imgBase || ""; UPLOADS = !!j.uploads; dirty = false;
+    W = j.data; IMGBASE = j.imgBase || ""; UPLOADS = !!j.uploads; PERMS = j.perms || []; dirty = false;
+    // მხოლოდ ის ჩანართები, რისი უფლებაც აქვს (სათამაშოები / ფასები / კონტაქტი / ტექსტები)
+    var TABMAP = { products: "site_products", prices: "site_prices", contact: "site_contact", texts: "site_texts" };
+    $$("#a-tabs button").forEach(function (b) { b.hidden = PERMS.indexOf(TABMAP[b.dataset.tab]) < 0; });
+    if (PERMS.indexOf(TABMAP[tab]) < 0) tab = (Object.keys(TABMAP).filter(function (k) { return PERMS.indexOf(TABMAP[k]) >= 0; })[0]) || tab;
   }
   $("#admin-open").onclick = async function () {
     try { if (!W) await load(); } catch (e) { alert(e.message); return; }

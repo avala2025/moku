@@ -85,7 +85,7 @@ function client() {
       assert.equal((await admin("/api/users", { name: n, email: e, role: ro, password: "pass12345", perms })).s, 200);
     r = await admin("/api/state"); assert.deepEqual(r.j.users.find((u) => u.name === "გიო").perms, ["order_create", "stock_view"], "perms saved as given");
     assert.deepEqual(r.j.users.find((u) => u.name === "დათო").perms, ["courier"], "courier preset");
-    assert.ok(r.j.me.perms.includes("users") && r.j.me.perms.includes("site_edit") && !r.j.me.perms.includes("courier"), "admin has every permission except courier mode");
+    assert.ok(r.j.me.perms.includes("users") && r.j.me.perms.includes("site_texts") && r.j.me.perms.includes("audit_view") && !r.j.me.perms.includes("courier"), "admin has every permission except courier mode");
     assert.ok(!r.j.couriers.some((c) => c.name === "ადმინი"), "admin is not in the courier list");
     assert.equal((await admin("/api/users", { name: "x", email: "nino@moku.ge", role: "sales", password: "pass12345" })).s, 400, "duplicate e-mail");
     r = await admin("/api/stock/toolbox", { stock_in: 3 }); assert.equal(r.j.products.find((p) => p.id === "toolbox").left, 3);
@@ -189,6 +189,48 @@ function client() {
     assert.equal((await c2("/api/state")).s, 401, "a disabled user is logged out");
     assert.equal((await sales("/api/password", { old: "pass12345", new: "newpass123" })).s, 200);
     assert.equal((await client()("/api/login", { email: "nino@moku.ge", password: "newpass123" })).s, 200, "new password works");
+    // ---- ადმინი v2: დეტალური უფლებები, ჟურნალი, მარაგის პარტია, შეკვეთის შესწორება ----
+    const st = await admin("/api/state"), ninoId = st.j.users.find((u) => u.email === "nino@moku.ge").id;
+    // საიტის მენეჯერი: მხოლოდ ტექსტები. ფასს ვერ ცვლის, ტექსტს ცვლის.
+    assert.equal((await admin("/api/users", { name: "სოფო", email: "sofo@moku.ge", template: "site", password: "pass12345" })).s, 200);
+    const sofo = client(); assert.equal((await sofo("/api/login", { email: "sofo@moku.ge", password: "pass12345" })).s, 200);
+    let sd = (await sofo("/api/shop")).j; assert.deepEqual(sd.perms, ["site_texts", "site_products", "site_contact"], "site template perms");
+    sd.data.discount = 10; sd.data.T.ka.heroCta = "ნახე კოლექცია"; sd.data.products.find((p) => p.id === "music").old = 1;
+    assert.equal((await sofo("/api/shop", { data: sd.data })).s, 200);
+    sd = (await admin("/api/shop")).j.data; assert.equal(sd.discount, 50, "no price permission: discount unchanged"); assert.equal(sd.products.find((p) => p.id === "music").old, 200, "price unchanged"); assert.equal(sd.T.ka.heroCta, "ნახე კოლექცია", "text changed");
+    assert.ok((await sofo("/")).t.includes("/a/panel.js"), "site manager gets the panel");
+    assert.equal((await sofo("/api/state")).j.orders, undefined, "site manager sees no orders");
+    // გამყიდველი ფასის უფლების გარეშე: ფასი ყოველთვის საიტის ფასია
+    await admin("/api/stock/receive", { items: [{ id: "radio", qty: 20 }, { id: "tap", qty: 5 }], note: "პარტია 1" });
+    r = await sales2("/api/orders", { customer: "ანა", phone: "577000111", items: [{ product_id: "radio", qty: 1, price: 1 }], fee: 0 });
+    let ord = r.j.orders[0]; assert.equal(ord.items[0].price, 45, "price forced to site price (90 −50%)"); assert.equal(ord.fee, 7, "fee forced to zone fee");
+    // შესწორება: გიოს არ აქვს orders_edit
+    assert.equal((await sales2(`/api/orders/${ord.id}/edit`, { customer: "ანა", phone: "577000111", items: [{ product_id: "radio", qty: 2 }] })).s, 403);
+    await admin(`/api/users/${gioId}`, { perms: ["order_create", "orders_edit", "stock_view"] });
+    r = await sales2(`/api/orders/${ord.id}/edit`, { customer: "ანა ბ.", phone: "577000111", address: "ვაკე", zone: "tbilisi", items: [{ product_id: "radio", qty: 2, price: 5 }, { product_id: "tap", qty: 1 }] });
+    assert.equal(r.s, 200, r.t); ord = r.j.orders.find((o) => o.id === ord.id); assert.equal(ord.customer, "ანა ბ."); assert.equal(ord.items.length, 2); assert.equal(ord.items[0].price, 45, "edit keeps price without permission");
+    assert.equal((await sales2(`/api/orders/${ord.id}/cancel`, {})).s, 403, "no cancel permission");
+    let hh = (await sales2(`/api/orders/${ord.id}/history`)).j.rows; assert.ok(hh.some((x) => x.action === "შეკვეთა გაფორმდა") && hh.some((x) => x.action === "შეკვეთა შესწორდა" && x.detail.includes("ანა → ანა ბ.")), "order history");
+    // მარაგის კორექცია და მოძრაობის ისტორია
+    assert.equal((await admin("/api/stock/adjust", { id: "radio", qty: -1, note: "" })).s, 400, "reason required");
+    r = await admin("/api/stock/adjust", { id: "radio", qty: -1, note: "დაზიანდა" }); assert.equal(r.s, 200);
+    assert.ok(r.j.moves.some((m) => m.kind === "receive" && m.qty === 20) && r.j.moves.some((m) => m.kind === "adjust" && m.qty === -1), "stock moves recorded");
+    assert.equal(r.j.products.find((p) => p.id === "radio").left, 20 - 1 - 2, "left = received − damaged − reserved");
+    assert.equal((await sales("/api/stock/receive", { items: [{ id: "radio", qty: 1 }] })).s, 403, "no stock receive permission");
+    // ფინანსები: შემოსავალი მხოლოდ finance_view-ით
+    const wh = client(); await admin("/api/users", { name: "საწყობი", email: "wh@moku.ge", template: "warehouse", password: "pass12345" });
+    await wh("/api/login", { email: "wh@moku.ge", password: "pass12345" }); r = await wh("/api/state");
+    assert.ok(r.j.products[0].stock_in !== undefined && r.j.products[0].revenue === undefined, "warehouse sees stock but not revenue");
+    // თანამშრომელი ვერ მისცემს სხვას იმაზე მეტს, რაც თავად აქვს
+    await admin(`/api/users/${ninoId}`, { perms: ["users", "order_create", "stock_view"] });
+    const nino2 = client(); await nino2("/api/login", { email: "nino@moku.ge", password: "newpass123" });
+    await nino2(`/api/users/${gioId}`, { perms: ["order_create", "finance_view", "users"] });
+    assert.deepEqual((await admin("/api/state")).j.users.find((u) => u.id === gioId).perms, ["order_create"], "cannot grant more than you have");
+    // „ყველგან გამოსვლა“ და ჟურნალი
+    assert.equal((await admin(`/api/users/${gioId}`, { logoutAll: true })).s, 200);
+    assert.equal((await sales2("/api/state")).s, 401, "logout everywhere ends old sessions");
+    const au = (await admin("/api/audit")).j.rows; assert.ok(au.some((x) => x.action === "პარტია მიღებულია") && au.some((x) => x.action === "საიტი შეიცვალა" && x.user_name === "სოფო") && au.some((x) => x.action.startsWith("თანამშრომელი:")), "audit log");
+    assert.equal((await sofo("/api/audit")).s, 403, "no audit permission");
     console.log("ALL CHECKS PASSED");
   } catch (e) { console.error("FAILED:", e.message, e.stack); process.exitCode = 1; }
   finally { srv && srv.kill(); smtp.close(); storageSrv.close(); }
