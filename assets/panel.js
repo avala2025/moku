@@ -41,7 +41,7 @@
     return '<label class="f' + (o.wide ? " w" : "") + '" for="' + id + '"><span>' + esc(label) + "</span>" + (o.area ? '<textarea id="' + id + '" data-p="' + path + '" rows="' + o.area + '">' + esc(v) + "</textarea>" : '<input id="' + id + '" data-p="' + path + '" type="' + (o.num ? "number" : "text") + '" ' + (o.num ? 'min="0" inputmode="numeric"' : "") + ' value="' + esc(v) + '">') + "</label>";
   }
   var pair = function (key, o) { return '<div class="pair"><b>' + esc(LBL[key] || key) + "</b>" + inp("T.ka." + key, "ქართულად", o) + inp("T.en." + key, "English", o) + "</div>"; };
-  var newPrice = function (p) { return Math.round(p.old * (1 - W.discount / 100)); };
+  var newPrice = function (p) { return +p.price > 0 ? Math.round(+p.price) : Math.round(p.old * (1 - W.discount / 100)); };
   var mark = function (m) { dirty = true; $("#a-status").textContent = m || "შეუნახავი ცვლილებები გაქვს"; };
 
   function render() {
@@ -62,7 +62,7 @@
             inp("products." + i + ".ka.4", "აღწერა სახელის ქვეშ (ქართ.)") + inp("products." + i + ".en.4", "Subtitle under the name (Eng.)") +
             inp("products." + i + ".ka.5", "რას ავითარებს (ქართ., გამოყავი · ნიშნით)", { area: 2 }) + inp("products." + i + ".en.5", "What it develops (Eng., separate with ·)", { area: 2 }) +
             inp("products." + i + ".ka.6", "ასაკი (ქართ., მაგ. 1+ წელი)") + inp("products." + i + ".en.6", "Age (Eng., e.g. 1+ years)") +
-            (can("prices") ? inp("products." + i + ".old", "ფასი ფასდაკლებამდე, ₾", { num: 1 }) : "") +
+            (can("prices") ? inp("products." + i + ".old", "ფასი ფასდაკლებამდე (გადახაზული), ₾", { num: 1 }) + inp("products." + i + ".price", "საბოლოო ფასი, ₾ (ცარიელი = საერთო ფასდაკლებით)", { num: 1 }) : "") +
             '<label class="f" for="a-cat-' + i + '"><span>კატეგორია</span><select id="a-cat-' + i + '" data-p="products.' + i + '.cat">' + CATS.map(function (c) { return '<option value="' + c + '" ' + (c === p.cat ? "selected" : "") + ">" + esc(W.T.ka[c]) + "</option>"; }).join("") + "</select></label>" +
             '<label class="f" for="a-tint-' + i + '"><span>ფონის ფერი</span><select id="a-tint-' + i + '" data-p="products.' + i + '.tint">' + TINTS.map(function (c, k) { return '<option value="' + c + '" ' + (c === p.tint ? "selected" : "") + ">" + ["ხისფერი", "ცისფერი", "მწვანე", "ვარდისფერი"][k] + "</option>"; }).join("") + "</select></label>" +
             '<div class="f w"><span>ფოტოები (პირველი მთავარია; „თეთრი ფონი“: ფოტო ფერად ფონზე ჩაჯდება)</span><div class="ph">' + (p.imgs.map(function (x, k) {
@@ -74,9 +74,9 @@
             '<div class="f w"><button type="button" class="danger" data-act="del" data-k="' + i + '">' + (delId === p.id ? "დააჭირე კიდევ ერთხელ წასაშლელად" : "სათამაშოს წაშლა") + "</button></div></div>" : "") + "</div>";
       }).join("") + '<button type="button" class="add" data-act="add">+ ახალი სათამაშო</button>';
     } else if (tab === "prices") {
-      B.innerHTML = '<div class="grid2">' + inp("discount", "ფასდაკლება, % (0 = ფასდაკლების გარეშე)", { num: 1 }) + "</div>" +
-        '<table class="pt"><thead><tr><th>სათამაშო</th><th>ძველი ფასი, ₾</th><th>ახალი ფასი</th></tr></thead><tbody>' + W.products.map(function (p, i) {
-          return "<tr><td>" + esc(p.ka[0]) + '</td><td><input id="a-old-' + i + '" data-p="products.' + i + '.old" type="number" min="0" inputmode="numeric" value="' + p.old + '" aria-label="ძველი ფასი"></td><td data-new="' + i + '">' + newPrice(p) + " ₾</td></tr>";
+      B.innerHTML = '<p class="a-note">თითო სათამაშოს შეგიძლია ჩაუწერო საბოლოო ფასი. თუ ცარიელია, საბოლოო ფასი = ძველი ფასი − საერთო ფასდაკლება. ძველი ფასი საიტზე გადახაზულად ჩანს, ფასდაკლების % თავისით ითვლება.</p><div class="grid2">' + inp("discount", "საერთო ფასდაკლება, % (ვისაც საბოლოო ფასი არ აქვს)", { num: 1 }) + "</div>" +
+        '<table class="pt"><thead><tr><th>სათამაშო</th><th>ძველი, ₾</th><th>საბოლოო, ₾</th><th>საიტზე</th></tr></thead><tbody>' + W.products.map(function (p, i) {
+          return "<tr><td>" + esc(p.ka[0]) + '</td><td><input id="a-old-' + i + '" data-p="products.' + i + '.old" type="number" min="0" inputmode="numeric" value="' + p.old + '" aria-label="ძველი ფასი"></td><td><input id="a-price-' + i + '" data-p="products.' + i + '.price" type="number" min="0" inputmode="numeric" value="' + (+p.price > 0 ? p.price : "") + '" placeholder="' + Math.round(p.old * (1 - W.discount / 100)) + '" aria-label="საბოლოო ფასი"></td><td data-new="' + i + '">' + newPrice(p) + " ₾</td></tr>";
         }).join("") + "</tbody></table>" +
         '<h4>მარაგის წარწერა</h4><p class="a-note">სათამაშოს გვერდზე და ბარათზე ჩანს „მარაგშია“, „დარჩა 2 ცალი“ ან „ამოიწურა“. რაოდენობა ავტომატურად მოდის მარაგიდან (შეკვეთები და მარაგი → მარაგი). თუ სათამაშოს მარაგი ჩაწერილი არ არის, წარწერა არ ჩანს.</p>' +
         '<label class="f chkline" for="a-showstock"><span><input id="a-showstock" type="checkbox" data-bool="showStock" ' + (W.showStock !== false ? "checked" : "") + '> მარაგის წარწერა საიტზე ჩართულია</span></label>' +

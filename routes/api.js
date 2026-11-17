@@ -508,10 +508,11 @@ module.exports = function register(app) {
     }
     const curBy = Object.fromEntries(cur.products.map((p) => [p.id, p])), incBy = Object.fromEntries(inc.products.map((p) => [p && p.id, p]));
     if (P("site_products")) {
-      out.products = inc.products.map((p) => ({ ...p, old: P("site_prices") ? p.old : curBy[p && p.id] ? curBy[p.id].old : 0 }));
-      if (ch(out.products.map(({ old, ...p }) => p), cur.products.map(({ old, ...p }) => p))) done.push("სათამაშოები");
-    } else if (P("site_prices")) out.products = cur.products.map((p) => (incBy[p.id] ? { ...p, old: incBy[p.id].old } : p));
-    for (const p of out.products) { const c = curBy[p.id]; if (c && Number(c.old) !== Number(p.old)) prices.push(`${c.ka[0]}: ${c.old} → ${p.old} ₾`); }
+      const keepP = (p) => { const c = curBy[p && p.id]; return P("site_prices") ? {} : { old: c ? c.old : 0, price: c ? c.price : undefined }; };
+      out.products = inc.products.map((p) => ({ ...p, ...keepP(p) }));
+      if (ch(out.products.map(({ old, price, ...p }) => p), cur.products.map(({ old, price, ...p }) => p))) done.push("სათამაშოები");
+    } else if (P("site_prices")) out.products = cur.products.map((p) => (incBy[p.id] ? { ...p, old: incBy[p.id].old, price: incBy[p.id].price } : p));
+    for (const p of out.products) { const c = curBy[p.id]; if (c && (Number(c.old) !== Number(p.old) || nowPrice(cur, c) !== nowPrice({ ...cur, discount: out.discount }, p))) prices.push(`${c.ka[0]}: ${nowPrice(cur, c)} → ${nowPrice({ ...cur, discount: out.discount }, p)} ₾${Number(c.old) !== Number(p.old) ? ` (ძველი ${c.old} → ${p.old})` : ""}`); }
     if (!done.length && !prices.length) return res.json({ ok: true });
     const err = await saveShop(out);
     if (err) fail(400, err);
