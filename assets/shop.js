@@ -54,6 +54,65 @@
     $$(".rv").forEach(function (el) { if (el.getBoundingClientRect().top > innerHeight) { el.classList.add("pre"); io.observe(el); } });
   }
 
+  // MOKU-ს საკუთარი სტატისტიკა (ადმინში „ვიზიტორები“): უსახელოდ, cookie-ს გარეშე. იგზავნება: რა გვერდი, რას დააჭირა, რამდენ ხანს.
+  (function () {
+    if (navigator.webdriver || /[?&]edit=/.test(location.search)) return;
+    var get = function (s, k) { try { return s.getItem(k); } catch (e) { return null; } };
+    var put = function (s, k, v) { try { s.setItem(k, v); } catch (e) {} };
+    var SS = window.sessionStorage, LS = window.localStorage;
+    var sid = get(SS, "mk-sid");
+    if (!sid) {
+      sid = (Math.random().toString(36).slice(2) + Date.now().toString(36)).replace(/[^a-z0-9]/g, "").slice(0, 32);
+      put(SS, "mk-sid", sid);
+      put(SS, "mk-ret", get(LS, "mk-seen") ? "1" : "0"); put(LS, "mk-seen", "1");
+      var qs = new URLSearchParams(location.search), r = "";
+      try { r = document.referrer ? new URL(document.referrer).hostname : ""; } catch (e) {}
+      if (r === location.hostname) r = "";
+      put(SS, "mk-src", JSON.stringify({ r: r, u: qs.get("utm_source") || "", c: qs.get("utm_campaign") || "", f: qs.has("fbclid") ? 1 : 0, g: qs.has("gclid") ? 1 : 0 }));
+    }
+    var src = {}; try { src = JSON.parse(get(SS, "mk-src") || "{}"); } catch (e) {}
+    var base = { sid: sid, lang: document.body.getAttribute("data-lang") || "ka", ret: get(SS, "mk-ret") === "1" ? 1 : 0, src: src };
+    var q = [], timer = null, t0 = Date.now(), depth = 0;
+    function send(now) {
+      clearTimeout(timer); if (!q.length) return;
+      var body = JSON.stringify(Object.assign({ ev: q.splice(0, 40) }, base));
+      try { if (now && navigator.sendBeacon && navigator.sendBeacon("/t", new Blob([body], { type: "text/plain" }))) return; } catch (e) {}
+      try { fetch("/t", { method: "POST", body: body, keepalive: true, headers: { "Content-Type": "text/plain" } }).catch(function () {}); } catch (e) {}
+    }
+    function ev(k, extra) { var e = { k: k, p: location.pathname }; for (var x in extra) e[x] = extra[x]; q.push(e); clearTimeout(timer); timer = setTimeout(send, 2000); }
+    function scrolled() { var h = document.documentElement.scrollHeight - innerHeight; depth = Math.max(depth, h > 0 ? Math.round((scrollY / h) * 100) : 100); }
+    addEventListener("scroll", scrolled, { passive: true }); scrolled();
+    function leave() { var s = Math.round((Date.now() - t0) / 1000); if (s > 0) ev("leave", { s: s, d: depth }); t0 = Date.now(); send(true); }
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") leave(); else t0 = Date.now(); });
+    addEventListener("pagehide", leave);
+    var pidOf = function (h) { var m = /\/toy\/([a-z0-9_-]+)/i.exec(h || ""); return m ? m[1] : ""; };
+    function label(a) {
+      var h = a.getAttribute("href") || "", m;
+      if (a.hasAttribute("data-consent") || a.hasAttribute("data-copied")) return null;
+      if (a.id === "copy") return ["order_copy"];
+      if (/wa\.me\//.test(h)) return [a.closest(".pp") ? "order_wa" : "contact_wa"];
+      if (a.hasAttribute("data-c2")) return ["cat:" + a.getAttribute("data-c2")];
+      if (a.closest(".thumbs")) return ["gallery"];
+      if (a.classList.contains("card")) return ["toy_card", pidOf(h)];
+      if (a.hasAttribute("hreflang")) return ["lang:" + a.getAttribute("hreflang")];
+      if (/^tel:/.test(h)) return ["contact_phone"];
+      if (/^mailto:/.test(h)) return ["contact_mail"];
+      if ((m = /^https?:\/\/(?:www\.|m\.)?([a-z0-9-]+)\./i.exec(h)) && !/moku/i.test(m[1])) return ["contact_" + m[1].toLowerCase()];
+      if (a.classList.contains("brand")) return ["logo"];
+      if (a.classList.contains("back")) return ["back"];
+      if ((m = /#([a-z]+)$/i.exec(h))) return [(a.closest("header") ? "nav" : a.closest("footer") ? "foot" : a.classList.contains("btn") ? "btn" : "link") + ":" + m[1]];
+      if (pidOf(h)) return ["toy_link", pidOf(h)];
+      return null;
+    }
+    document.addEventListener("click", function (e) {
+      var a = e.target.closest && e.target.closest("a,button"); if (!a) return;
+      var l = label(a); if (!l) return;
+      ev("click", l[1] ? { l: l[0], pid: l[1] } : { l: l[0] });
+      if (a.tagName === "A" && !/^#/.test(a.getAttribute("href") || "")) send(true); // გვერდიდან გადის: მაშინვე გაგზავნე
+    }, true);
+    ev("view");
+  })();
+
   // სტატისტიკა: იტვირთება მხოლოდ თანხმობის შემდეგ და მხოლოდ თუ კოდი ჩაწერილია პანელში
   var ga = document.body.getAttribute("data-ga"), px = document.body.getAttribute("data-px");
   if (!ga && !px) return;

@@ -10,7 +10,8 @@ const day = d => { const x = new Date(d + "T12:00:00"); return isNaN(x) ? d : `$
 const ST = { new: "კურიერი არ არის დანიშნული", assigned: "კურიერი დანიშნულია", picked: "კურიერმა აიღო", problem: "ვერ ჩაბარდა", delivered: "ჩაბარებული", returned: "დაბრუნდა", cancelled: "გაუქმდა" };
 const ROLE = { admin: "ადმინი", sales: "გაყიდვები", courier: "კურიერი" };
 const ZONE = { tbilisi: ["თბილისი", 7], region: ["რეგიონი", 15], pickup: ["თვითგატანა", 0] };
-const KIND = { order_created: "მყიდველს: შეკვეთა გაფორმდა", courier_assigned: "კურიერს: წასაღები შეკვეთა", picked: "მყიდველს: კურიერმა აიღო" };
+const KIND = { order_created: "მყიდველს: შეკვეთა გაფორმდა", courier_assigned: "კურიერს: წასაღები შეკვეთა", picked: "მყიდველს: კურიერმა აიღო",
+  pw_reset: "თანამშრომელს: პაროლის აღდგენის ბმული", pw_changed: "თანამშრომელს: პაროლი შეიცვალა", email_changed: "თანამშრომელს: მეილი შეიცვალა", welcome: "თანამშრომელს: ახალი ანგარიში" };
 const MST = { sent: "გაიგზავნა", failed: "ვერ გაიგზავნა", skipped: "გამოტოვებულია", sending: "იგზავნება" };
 
 // უფლებები ჯგუფებად: [კოდი, სახელი, ახსნა]
@@ -50,8 +51,10 @@ function tabsFor() {
   if (has("users")) t.push(["users", "თანამშრომლები"]);
   if (has("audit_view")) t.push(["audit", "ჟურნალი"]);
   if (has("emails")) t.push(["emails", "მეილები"]);
+  if (isAdmin()) t.push(["pnl", "მოგება-ზარალი"], ["visits", "ვიზიტორები"]);
   return t;
 }
+let RESET = new URLSearchParams(location.search).get("reset") || "", authMode = "";
 let S = null, tab = "", filter = "open", F = null, editId = null, busy = false, pending = false, force = false, pw = false, q = "", found = "", reason = {};
 let OF = { from: "", to: "", seller: "", courier: "" }, period = "month", AUD = { user: "", q: "", rows: null }, hist = {}, editUser = null, newTpl = "sales";
 const img = n => n ? (String(n).startsWith("u-") ? `${S.imgBase}/${n}-480.webp` : `/img/${n}-480.webp`) : "";
@@ -83,7 +86,7 @@ function draw() {
   const a = document.activeElement;
   if (S && a && app.contains(a) && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && !force) { pending = true; return; }
   force = false; pending = false;
-  if (!S) { $("#tabs").hidden = $("#me").hidden = true; app.innerHTML = login(); return; }
+  if (!S || RESET) { $("#tabs").hidden = $("#me").hidden = true; app.innerHTML = RESET ? resetForm() : authMode === "forgot" ? forgotForm() : login(); return; }
   const tabs = tabsFor();
   if (tab === "edit" && editId) { /* შესწორების ფორმა */ } else if (!tabs.some(t => t[0] === tab)) tab = tabs[0]?.[0] || "";
   $("#me").hidden = false;
@@ -92,9 +95,11 @@ function draw() {
   $("#tabs").innerHTML = tabs.map(([k, l]) => `<button type="button" data-tab="${k}" aria-pressed="${k === tab}">${l}</button>`).join("") +
     (has(...SITE) ? `<a class="sitebtn" href="/?edit=${["site_products", "site_prices", "site_contact", "site_texts"].map((p, i) => has(p) ? ["products", "prices", "contact", "texts"][i] : "").find(Boolean)}">✎ საიტის რედაქტირება</a>` : "");
   if (!F && has("order_create")) F = blank();
-  const V = { deliver: courier, home, orders, neworder: newOrder, edit: newOrder, couriers: couriersTab, stock: stockTab, stats, users, audit, emails };
+  const V = { deliver: courier, home, orders, neworder: newOrder, edit: newOrder, couriers: couriersTab, stock: stockTab, stats, users, audit, emails, pnl, visits };
   app.innerHTML = (pw ? pwForm() : "") + (!tab ? (has(...SITE) ? `<div class="msg">შენ საიტის რედაქტირება შეგიძლია. დააჭირე ზემოთ ღილაკს „✎ საიტის რედაქტირება“.</div>` : `<div class="msg">უფლებები ჯერ არ გაქვს. მიმართე ადმინს.</div>`) : (V[tab] || home)());
   if (tab === "audit" && !AUD.rows) loadAudit();
+  if (tab === "pnl" && !PN.d && !PN.loading && !PN.fail) loadPnl();
+  if (tab === "visits" && !VS.d && !VS.loading && !VS.fail) loadVisits();
   const on = $("#tabs [aria-pressed=true]"), tb = $("#tabs"); if (on && tb.scrollWidth > tb.clientWidth) tb.scrollLeft = on.offsetLeft - tb.clientWidth / 2 + on.offsetWidth / 2; // ტელეფონზე აქტიური ჩანართი ჩანდეს
 }
 app.addEventListener("focusout", () => setTimeout(() => { if (pending) draw(); }, 0));
@@ -102,7 +107,14 @@ app.addEventListener("focusout", () => setTimeout(() => { if (pending) draw(); }
 const login = () => `<form class="login card" id="login"><h1>შესვლა</h1>
   <label for="l-email">მეილი<input id="l-email" type="email" autocomplete="username" required></label>
   <label for="l-pass">პაროლი<input id="l-pass" type="password" autocomplete="current-password" required></label>
-  <button class="btn big" type="submit">შესვლა</button></form>`;
+  <button class="btn big" type="submit">შესვლა</button><button class="link" type="button" data-op="forgot" style="justify-self:start">დაგავიწყდა პაროლი?</button></form>`;
+const forgotForm = () => `<form class="login card" id="fg"><h1>პაროლის აღდგენა</h1><p class="hint" style="margin:0">ჩაწერე სისტემაში შესვლის მეილი. მოგივა ბმული, რომლითაც ახალ პაროლს დააყენებ (მოქმედებს 1 საათი).</p>
+  <label for="fg-email">მეილი<input id="fg-email" type="email" autocomplete="username" required></label>
+  <button class="btn big" type="submit">ბმულის გაგზავნა</button><button class="link" type="button" data-op="tologin" style="justify-self:start">← შესვლაზე დაბრუნება</button></form>`;
+const resetForm = () => `<form class="login card" id="rs"><h1>ახალი პაროლი</h1>
+  <label for="rs-1">ახალი პაროლი (მინ. 8 სიმბოლო)<input id="rs-1" type="password" autocomplete="new-password" minlength="8" required></label>
+  <label for="rs-2">გაიმეორე<input id="rs-2" type="password" autocomplete="new-password" minlength="8" required></label>
+  <button class="btn big" type="submit">შენახვა და შესვლა</button><button class="link" type="button" data-op="tologin" style="justify-self:start">გაუქმება</button></form>`;
 const pwForm = () => `<form class="card" id="pwf" style="margin-bottom:16px"><div class="g2">
   <label for="p-old">ძველი პაროლი<input id="p-old" type="password" autocomplete="current-password" required></label>
   <label for="p-new">ახალი პაროლი (მინ. 8 სიმბოლო)<input id="p-new" type="password" autocomplete="new-password" minlength="8" required></label></div>
@@ -292,9 +304,9 @@ function audit() {
 }
 
 const emails = () => `${S.mailReady ? "" : `<div class="msg" style="margin-bottom:14px">მეილის სერვისი ჯერ არ არის დაყენებული.</div>`}
-  <div class="list">${S.emails.map(e => `<div class="card"><div class="top"><b>№ ${e.order_id}</b><span class="pill ${e.status}">${MST[e.status] || e.status}</span><time>${when(e.created)}</time></div>
+  <div class="list">${S.emails.map(e => `<div class="card"><div class="top"><b>${e.order_id ? "№ " + e.order_id : "ანგარიში"}</b><span class="pill ${e.status}">${MST[e.status] || e.status}</span><time>${when(e.created)}</time></div>
     <div class="who"><span>${esc(KIND[e.kind] || e.kind)}</span><span>${esc(e.to_addr || "მისამართის გარეშე")}</span></div>${e.error ? `<div class="note">${esc(e.error)}</div>` : ""}
-    ${e.status === "failed" ? `<div class="acts"><button class="btn ghost" data-op="retry" data-id="${e.id}">ხელახლა გაგზავნა</button></div>` : ""}</div>`).join("") || `<div class="msg">წერილები ჯერ არ გაგზავნილა.</div>`}</div>`;
+    ${e.status === "failed" && e.order_id ? `<div class="acts"><button class="btn ghost" data-op="retry" data-id="${e.id}">ხელახლა გაგზავნა</button></div>` : ""}</div>`).join("") || `<div class="msg">წერილები ჯერ არ გაგზავნილა.</div>`}</div>`;
 
 // ---------- კურიერი (ტელეფონზე) ----------
 function courier() {
@@ -317,15 +329,168 @@ function courier() {
   ${done.length ? `<h2>დღეს ჩაბარებული <small>${done.length}</small></h2><div class="list">${done.map(c).join("")}</div>` : ""}`;
 }
 
+
+// ---------- მოგება-ზარალი (მხოლოდ ადმინი) ----------
+let PN = { m: "", d: null, view: "report", loading: false }, KEEP = {};
+const fm = n => { const r = Math.round((+n || 0) * 100) / 100; return (r < 0 ? "−" : "") + Math.abs(r).toLocaleString("en-US", { maximumFractionDigits: 2 }).replace(/,/g, " ") + " ₾"; };
+const mname = m => { const [y, mo] = String(m).split("-"); return `${MON[+mo - 1] || ""} ${y}`; };
+const pc = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+const kv = (id, def) => esc(KEEP[id] ?? def ?? "");
+const sg = n => (n < 0 ? "neg" : "pos");
+async function loadPnl(m) { PN.loading = true; try { PN.d = await api("pnl" + ((m || PN.m) ? "?m=" + (m || PN.m) : "")); PN.m = PN.d.month; PN.fail = false; } catch (e) { PN.fail = true; say(e.message); } PN.loading = false; force = true; draw(); }
+async function pnlAct(path, data, ok) { if (busy) return false; busy = true; say(""); try { PN.d = await api(path, { ...data, m: PN.m }); say(ok, true); force = true; draw(); return true; } catch (e) { say(e.message); return false; } finally { busy = false; } }
+const monthPick = D => `<label for="pn-m" style="max-width:240px">თვე<select id="pn-m">${D.months.slice().reverse().map(x => `<option value="${x.month}" ${x.month === PN.m ? "selected" : ""}>${mname(x.month)}</option>`).join("")}</select></label>`;
+function pnl() {
+  const D = PN.d; if (!D) return `<div class="note">იტვირთება…</div>`;
+  const V = [["report", "ანგარიში"], ["costs", "თვითღირებულება"], ["pay", "ხელფასები"], ["exp", "ხარჯები"]];
+  return `<div class="chips" role="group" aria-label="მოგება-ზარალი">${V.map(([k, l]) => `<button type="button" data-pv="${k}" aria-pressed="${k === PN.view}">${l}</button>`).join("")}</div>` + { report: pnlReport, costs: pnlCosts, pay: pnlPay, exp: pnlExp }[PN.view](D);
+}
+function pnlReport(D) {
+  const x = D.detail, miss = D.products.filter(p => !p.set && !p.hidden).length;
+  const f0 = D.months.findIndex(m => m.orders || m.sal || m.other), MS = D.months.slice(f0 < 0 ? D.months.length - 1 : Math.min(f0, D.months.length - 1)); // ცარიელი თვეები თავში არ ჩანს
+  const max = Math.max(1, ...MS.map(m => Math.abs(m.net)));
+  const T = k => MS.reduce((a, m) => a + m[k], 0);
+  return `<div class="filters">${monthPick(D)}</div>
+  ${x.noCost ? `<div class="warn" style="margin-bottom:12px">${x.noCost} გაყიდულ ცალს თვითღირებულება არ აქვს ჩაწერილი, ამიტომ მოგება რეალურზე მეტად ჩანს. <button class="link" data-pv="costs">თვითღირებულების ჩაწერა</button></div>` : miss ? `<div class="warn" style="margin-bottom:12px">${miss} სათამაშოს თვითღირებულება ჯერ არ არის ჩაწერილი. <button class="link" data-pv="costs">ჩაწერა</button></div>` : ""}
+  <div class="tiles"><div class="tile"><span>შემოსავალი</span><b>${fm(x.revenue)}</b><small>${x.orders} შეკვეთა · ${x.units} ცალი</small></div>
+    <div class="tile"><span>თვითღირებულება</span><b>${fm(x.cogs)}</b><small>მთლიანი მოგება ${fm(x.gross)}</small></div>
+    <div class="tile"><span>ხარჯები</span><b>${fm(x.sal + x.other)}</b><small>ხელფასი ${fm(x.sal)} · სხვა ${fm(x.other)}</small></div>
+    <div class="tile"><span>წმინდა მოგება</span><b class="${sg(x.net)}">${fm(x.net)}</b><small>მარჟა ${pc(x.net, x.revenue)}%</small></div></div>
+  <div class="split2"><div><h2>${mname(x.month)}</h2><div class="card pl">
+    <div><span>სათამაშოების გაყიდვა</span><span>${fm(x.goods)}</span></div><div><span>მიწოდების საფასური</span><span>${fm(x.fee)}</span></div>
+    <div class="eq"><span>შემოსავალი</span><span>${fm(x.revenue)}</span></div>
+    <div><span>− თვითღირებულება</span><span>${fm(-x.cogs)}</span></div>
+    <div class="eq"><span>მთლიანი მოგება <small class="note">${pc(x.gross, x.revenue)}%</small></span><span>${fm(x.gross)}</span></div>
+    <div><span>− ხელფასები</span><span>${fm(-x.sal)}</span></div>
+    ${x.salaries.map(s => `<div class="sub"><span>${esc(s.name)}${s.deliveries ? ` · ${s.deliveries} მიტანა` : ""}${s.byComm ? ` · ${fm(s.byComm)} %-ით` : ""}</span><span>${fm(s.total)}</span></div>`).join("")}
+    ${Object.entries(x.exp).map(([c, v]) => `<div><span>− ${esc(c)}</span><span>${fm(-v)}</span></div>`).join("")}
+    <div class="eq big"><span>წმინდა მოგება</span><span class="${sg(x.net)}">${fm(x.net)}</span></div></div>
+    <p class="hint" style="margin-top:8px">შემოსავალი ითვლება ჩაბარებული შეკვეთებიდან, ჩაბარების თვის მიხედვით. გაუქმებული და დაბრუნებული არ ითვლება.</p></div>
+  <div><h2>მარაგის ღირებულება</h2><div class="tiles" style="grid-template-columns:1fr 1fr"><div class="tile"><span>თვითღირებულებით</span><b>${fm(D.stockValue)}</b><small>რაც ახლა საწყობშია</small></div><div class="tile"><span>საიტის ფასით</span><b>${fm(D.stockRetail)}</b><small>თუ ყველაფერი გაიყიდება</small></div></div>
+    <h2>სათამაშოები ამ თვეში</h2><div class="tw"><table class="sm"><thead><tr><th>სათამაშო</th><th>ცალი</th><th>შემოსავალი</th><th>მოგება</th><th>მარჟა</th></tr></thead><tbody>${x.products.map(p => `<tr><td>${esc(p.name)}${p.noCost ? ` <small class="neg">(თვითღ. არ არის)</small>` : ""}</td><td>${p.qty}</td><td>${fm(p.rev)}</td><td class="${sg(p.profit)}">${fm(p.profit)}</td><td>${pc(p.profit, p.rev)}%</td></tr>`).join("") || `<tr><td colspan="5" class="note">ამ თვეში ჩაბარებული შეკვეთა არ არის.</td></tr>`}</tbody></table></div></div></div>
+  <h2>თვეების მიხედვით <small>წმინდა მოგება</small></h2>
+  <div class="card"><div class="bars">${MS.map(m => `<div class="b" title="${mname(m.month)}: ${fm(m.net)}"><em class="${sg(m.net)}">${m.net ? Math.round(m.net) : ""}</em><i class="${m.net < 0 ? "neg" : ""}" style="height:${Math.max(2, Math.round((Math.abs(m.net) / max) * 100))}%"></i><span>${(MON[+m.month.slice(5) - 1] || "").slice(0, 3)}</span></div>`).join("")}</div></div>
+  <div class="tw" style="margin-top:12px"><table><thead><tr><th>თვე</th><th>შეკვეთა</th><th>შემოსავალი</th><th>თვითღირებულება</th><th>მთლიანი მოგება</th><th>ხელფასი</th><th>სხვა ხარჯი</th><th>წმინდა მოგება</th></tr></thead>
+  <tbody>${MS.slice().reverse().map(m => `<tr><td><button class="link" data-op="pnlmonth" data-m="${m.month}">${mname(m.month)}</button></td><td>${m.orders}</td><td>${fm(m.revenue)}</td><td>${fm(m.cogs)}</td><td>${fm(m.gross)}</td><td>${fm(m.sal)}</td><td>${fm(m.other)}</td><td class="${sg(m.net)}">${fm(m.net)}</td></tr>`).join("")}</tbody>
+  <tfoot><tr><td>სულ${MS.length > 1 ? ` (${MS.length} თვე)` : ""}</td><td>${T("orders")}</td><td>${fm(T("revenue"))}</td><td>${fm(T("cogs"))}</td><td>${fm(T("gross"))}</td><td>${fm(T("sal"))}</td><td>${fm(T("other"))}</td><td class="${sg(T("net"))}">${fm(T("net"))}</td></tr></tfoot></table></div>`;
+}
+function costRow(id) {
+  const p = PN.d.products.find(x => x.id === id); if (!p) return;
+  const v = k => +(String(KEEP[`c-${k}-${id}`] ?? p[k]).replace(",", ".")) || 0, c = v("buy") + v("ship") + v("pack");
+  const set = (s, t, cl) => { const e = $(s); if (e) { e.textContent = t; if (cl !== undefined) e.className = cl; } };
+  set(`#ct-${id}`, c ? fm(c) : "—"); set(`#cp-${id}`, c ? fm(p.price - c) : "—", c ? sg(p.price - c) : ""); set(`#cm-${id}`, c ? pc(p.price - c, p.price) + "%" : "—");
+}
+function pnlCosts(D) {
+  const inp = (p, k) => `<input id="c-${k}-${p.id}" data-keep data-cost="${p.id}" type="number" min="0" step="0.01" inputmode="decimal" value="${kv(`c-${k}-${p.id}`, p[k] || "")}" placeholder="0" aria-label="${esc(p.name)}">`;
+  return `<p class="hint">ჩაწერე <b>ერთი ცალის</b> ფასი ლარში. მაგ.: თუ 100 ცალის ტრანსპორტი და განბაჟება 300 ₾ დაჯდა, ტრანსპორტში ჩაწერე 3. ახალი თვითღირებულება მოქმედებს ახალ შეკვეთებზე. უკვე გაფორმებულ შეკვეთებს ძველი რჩება, ხოლო ამ ცვლილებამდე გაფორმებულებს მიმდინარე ფასი ეთვლებათ.</p>
+  <form id="costf"><div class="tw costs"><table><thead><tr><th>სათამაშო</th><th>საიტის ფასი</th><th>შესყიდვა</th><th>ტრანსპორტი, განბაჟება</th><th>შეფუთვა</th><th>თვითღირებულება</th><th>მოგება ცალზე</th><th>მარჟა</th><th>მარაგში</th></tr></thead>
+  <tbody>${D.products.map(p => { const v = k => +(String(KEEP[`c-${k}-${p.id}`] ?? p[k]).replace(",", ".")) || 0, c = v("buy") + v("ship") + v("pack");
+    return `<tr><td>${esc(p.name)}${p.hidden ? ` <small class="note">(დამალული)</small>` : ""}</td><td>${fm(p.price)}</td><td>${inp(p, "buy")}</td><td>${inp(p, "ship")}</td><td>${inp(p, "pack")}</td><td id="ct-${p.id}">${c ? fm(c) : "—"}</td><td id="cp-${p.id}" class="${c ? sg(p.price - c) : ""}">${c ? fm(p.price - c) : "—"}</td><td id="cm-${p.id}">${c ? pc(p.price - c, p.price) + "%" : "—"}</td><td>${p.left}</td></tr>`; }).join("")}</tbody></table></div>
+  <div class="acts" style="margin-top:12px"><button class="btn" type="submit">შენახვა</button></div></form>`;
+}
+function pnlPay(D) {
+  const u = KEEP["pf-u"] ?? "", x = D.detail, act = D.pay.filter(p => p.active), old = D.pay.filter(p => !p.active);
+  const terms = p => [p.fixed ? `თვეში ${fm(p.fixed)}` : "", p.per_delivery ? `თითო მიტანა ${fm(p.per_delivery)}` : "", p.commission ? `${p.commission}% საკუთარი გაყიდვებიდან` : ""].filter(Boolean).join(" · ");
+  return `<p class="hint">ხელფასი შეიძლება იყოს ფიქსირებული, თითო ჩაბარებულ შეკვეთაზე (კურიერი) ან პროცენტი იმ შეკვეთებიდან, რომლებიც თანამშრომელმა გააფორმა. შეიძლება სამივე ერთად. პირობის შეცვლისას ძველი თვეები უცვლელი რჩება.</p>
+  <div class="split2"><form class="card" id="payf"><b>ხელფასის დანიშვნა ან შეცვლა</b>
+    <label for="pf-u">თანამშრომელი<select id="pf-u" data-keep><option value="">აირჩიე…</option>${D.staff.filter(s => s.active).map(s => `<option value="${s.id}" ${String(s.id) === u ? "selected" : ""}>${esc(s.name)}${s.title ? " · " + esc(s.title) : ""}</option>`).join("")}<option value="x" ${u === "x" ? "selected" : ""}>სხვა (სისტემაში არ შედის)</option></select></label>
+    ${u === "x" ? `<label for="pf-n">სახელი<input id="pf-n" data-keep value="${kv("pf-n")}"></label>` : ""}
+    <div class="g2"><label for="pf-f">ფიქსირებული, თვეში ₾<input id="pf-f" data-keep type="number" min="0" step="0.01" value="${kv("pf-f")}" placeholder="0"></label>
+      <label for="pf-d">თითო ჩაბარებულ შეკვეთაზე ₾<input id="pf-d" data-keep type="number" min="0" step="0.01" value="${kv("pf-d")}" placeholder="0"></label>
+      <label for="pf-c">% საკუთარი გაყიდვებიდან<input id="pf-c" data-keep type="number" min="0" max="100" step="0.1" value="${kv("pf-c")}" placeholder="0"></label>
+      <label for="pf-m">რომელი თვიდან<input id="pf-m" data-keep type="month" value="${kv("pf-m", D.now)}"></label></div>
+    <div class="acts"><button class="btn" type="submit">შენახვა</button></div></form>
+  <div><div class="filters">${monthPick(D)}</div><div class="tw"><table class="sm"><thead><tr><th>${esc(mname(x.month))}</th><th>ფიქს.</th><th>მიტანით</th><th>%-ით</th><th>სულ</th></tr></thead>
+    <tbody>${x.salaries.map(s => `<tr><td>${esc(s.name)}</td><td>${fm(s.fixed)}</td><td>${s.deliveries ? `${fm(s.byDel)} <small class="note">(${s.deliveries})</small>` : "—"}</td><td>${s.byComm ? `${fm(s.byComm)} <small class="note">(${fm(s.sales)}-დან)</small>` : "—"}</td><td><b>${fm(s.total)}</b></td></tr>`).join("") || `<tr><td colspan="5" class="note">ამ თვეში ხელფასი არავისზეა.</td></tr>`}</tbody>
+    ${x.salaries.length ? `<tfoot><tr><td>სულ</td><td></td><td></td><td></td><td>${fm(x.sal)}</td></tr></tfoot>` : ""}</table></div></div></div>
+  <h2>მოქმედი პირობები</h2><div class="list">${act.map(p => `<div class="card"><div class="top"><b>${esc(p.name)}</b><small>${mname(p.from_month)}-დან${p.to_month ? " " + mname(p.to_month) + "-მდე" : ""}</small></div><div>${terms(p)}</div>
+    <div class="acts"><button class="btn ghost" data-op="pnlpay-edit" data-id="${p.id}">შეცვლა</button><button class="btn bad" data-op="pnlpay-stop" data-id="${p.id}" data-to="${D.now}">შეწყვეტა ამ თვის შემდეგ</button></div></div>`).join("") || `<div class="msg">ხელფასი ჯერ არავისთვის არ არის ჩაწერილი.</div>`}</div>
+  ${old.length ? `<h2>ისტორია</h2><div class="card">${old.map(p => `<div class="crow"><span>${esc(p.name)} · ${terms(p)}</span><span class="note">${mname(p.from_month)} – ${mname(p.to_month)}</span><button class="link" data-op="pnlpay-del" data-id="${p.id}">წაშლა</button></div>`).join("")}</div>` : ""}`;
+}
+function pnlExp(D) {
+  const k = KEEP["ef-k"] || "once", x = D.detail;
+  return `<div class="split2"><form class="card" id="expf"><b>ხარჯის დამატება</b>
+    <label for="ef-k">სახე<select id="ef-k" data-keep><option value="once" ${k === "once" ? "selected" : ""}>ერთჯერადი</option><option value="monthly" ${k === "monthly" ? "selected" : ""}>ყოველთვიური (მაგ. ქირა, ინტერნეტი)</option></select></label>
+    <div class="g2">${k === "monthly" ? `<label for="ef-mm">რომელი თვიდან<input id="ef-mm" data-keep type="month" value="${kv("ef-mm", D.now)}"></label>` : `<label for="ef-d">თარიღი<input id="ef-d" data-keep type="date" value="${kv("ef-d", S.today)}"></label>`}
+      <label for="ef-c">კატეგორია<select id="ef-c" data-keep>${D.cats.map(c => `<option ${c === (KEEP["ef-c"] || D.cats[0]) ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></label>
+      <label for="ef-a">თანხა, ₾${k === "monthly" ? " (თვეში)" : ""}<input id="ef-a" data-keep type="number" min="0" step="0.01" inputmode="decimal" value="${kv("ef-a")}" required></label>
+      <label for="ef-n">შენიშვნა<input id="ef-n" data-keep value="${kv("ef-n")}" placeholder="მაგ. Facebook რეკლამა"></label></div>
+    <div class="acts"><button class="btn" type="submit">დამატება</button></div></form>
+  <div><div class="filters">${monthPick(D)}</div><div class="card">${x.expList.map(e => `<div class="crow"><span>${esc(e.category)}${e.note ? ` <small class="note">· ${esc(e.note)}</small>` : ""}<br><small class="note">${e.kind === "monthly" ? "ყოველთვიური" : esc(e.day)}</small></span><b>${fm(e.amount)}</b>${e.kind === "monthly" ? "<span></span>" : `<button class="link" data-op="pnlexp-del" data-id="${e.id}">წაშლა</button>`}</div>`).join("") || `<div class="note">${esc(mname(x.month))}: ხარჯი არ არის ჩაწერილი.</div>`}
+    ${x.expList.length ? `<div class="crow"><b>სულ</b><b>${fm(x.other)}</b><span></span></div>` : ""}</div></div></div>
+  <h2>ყოველთვიური ხარჯები</h2><div class="card">${D.monthly.map(e => { const on = !e.to_month || e.to_month >= D.now; return `<div class="crow"><span>${esc(e.category)}${e.note ? ` · ${esc(e.note)}` : ""}<br><small class="note">${mname(e.day)}-დან${e.to_month ? " " + mname(e.to_month) + "-მდე" : ""}</small></span><b>${fm(e.amount)}</b>${on ? `<button class="link" data-op="pnlexp-stop" data-id="${e.id}" data-to="${D.now}">შეწყვეტა</button>` : `<button class="link" data-op="pnlexp-del" data-id="${e.id}">წაშლა</button>`}</div>`; }).join("") || `<div class="note">ჯერ არ არის.</div>`}</div>`;
+}
+
+// ---------- ვიზიტორები (მხოლოდ ადმინი) ----------
+let VS = { per: "7", from: "", to: "", d: null, loading: false };
+const addD = (d, n) => new Date(Date.parse(d + "T12:00:00Z") + n * 864e5).toISOString().slice(0, 10);
+const VP = [["today", "დღეს"], ["yest", "გუშინ"], ["7", "7 დღე"], ["30", "30 დღე"], ["month", "ეს თვე"], ["90", "90 დღე"]];
+function vRange() {
+  const t = S.today;
+  if (VS.per === "today") return [t, t]; if (VS.per === "yest") return [addD(t, -1), addD(t, -1)];
+  if (VS.per === "month") return [t.slice(0, 8) + "01", t]; if (VS.per === "custom") return [VS.from || addD(t, -6), VS.to || t];
+  return [addD(t, -(+VS.per - 1)), t];
+}
+async function loadVisits() { VS.loading = true; const [f, t] = vRange(); try { VS.d = await api(`visits?from=${f}&to=${t}`); VS.fail = false; } catch (e) { VS.fail = true; say(e.message); } VS.loading = false; force = true; draw(); }
+const secs = s => (s < 60 ? `${s} წმ` : `${Math.floor(s / 60)} წთ ${s % 60} წმ`);
+const SRC = { direct: "პირდაპირ (ბმული, სანიშნე, მესენჯერი)" };
+const LBL = { order_wa: "WhatsApp-ით შეკვეთა", order_copy: "შეკვეთის ტექსტის კოპირება", contact_wa: "WhatsApp (კონტაქტებიდან)", contact_phone: "ტელეფონზე დარეკვა", contact_mail: "მეილის მიწერა", contact_instagram: "Instagram", contact_facebook: "Facebook", contact_tiktok: "TikTok",
+  gallery: "ფოტოების გადაფურცვლა", toy_card: "სათამაშოს ბარათი სიაში", toy_link: "სათამაშოს ბმული", logo: "ლოგო", back: "„უკან“", "lang:en": "ენა → ENG", "lang:ka": "ენა → ქარ" };
+const ANC = { collection: "კოლექცია", story: "ჩვენი ისტორია", order: "როგორ შევუკვეთო", top: "ზემოთ" }, WHERE = { nav: "მენიუ", foot: "ქვედა მენიუ", btn: "ღილაკი", link: "ბმული" };
+const lname = (l, d) => LBL[l] || (l.startsWith("cat:") ? "კატეგორია: " + (d.cats[l.slice(4)] || l.slice(4)) : /^(nav|foot|btn|link):/.test(l) ? `${WHERE[l.split(":")[0]]}: ${ANC[l.split(":")[1]] || l.split(":")[1]}` : l.startsWith("contact_") ? l.slice(8) : l);
+const pname = (p, d) => { if (p === "/" ) return "მთავარი (ქარ)"; if (p === "/en") return "მთავარი (ENG)"; const m = /^\/(en\/)?toy\/(.+)$/.exec(p); return m ? (d.pnames[m[2]] || m[2]) + (m[1] ? " (ENG)" : "") : p; };
+const meters = (list, d, name) => { const tot = list.reduce((a, x) => a + x.v, 0) || 1; return list.map(x => `<div class="meter"><span>${esc(name(x.k))}</span><span>${pc(x.v, tot)}% <small class="note">${x.v}</small></span><i><b style="width:${pc(x.v, tot)}%"></b></i></div>`).join("") || `<div class="note">—</div>`; };
+function visits() {
+  const d = VS.d, [f, t] = vRange();
+  const head = `<div class="chips" role="group" aria-label="პერიოდი">${VP.map(([k, l]) => `<button type="button" data-vp="${k}" aria-pressed="${k === VS.per}">${l}</button>`).join("")}</div>
+  <div class="filters"><label for="vs-from">დან<input id="vs-from" type="date" value="${esc(f)}"></label><label for="vs-to">მდე<input id="vs-to" type="date" value="${esc(t)}"></label>${d ? `<span class="live">ახლა საიტზეა: ${d.live}</span>` : ""}</div>`;
+  if (!d) return head + `<div class="note">იტვირთება…</div>`;
+  const o = d.tot, note = `<p class="hint">ვიზიტორი = ერთი შემოსვლა (ბრაუზერის ერთი ჩანართი). სახელი, IP და cookie არ ინახება. თანამშრომლების (სისტემაში შესულების) ვიზიტები არ ითვლება.${d.since ? ` სტატისტიკა იწერება ${+d.since.slice(8)} ${MON[+d.since.slice(5, 7) - 1]}-დან.` : ""}</p>`;
+  if (!o.v) return head + `<div class="msg">ამ პერიოდში ვიზიტი ჯერ არ ჩაწერილა.</div>` + note;
+  const vmax = Math.max(1, ...d.days.map(x => x.v)), all = [];
+  for (let x = d.from; x <= d.to && all.length < 400; x = addD(x, 1)) all.push(d.days.find(y => y.day === x) || { day: x, v: 0, intent: 0 });
+  const hmax = Math.max(1, ...d.hours.map(h => h.v)), hours = Array.from({ length: 24 }, (_, h) => d.hours.find(x => +x.k === h)?.v || 0);
+  const fun = [["შემოვიდა საიტზე", o.v], ["ნახა სათამაშოს გვერდი", o.pview], ["დააჭირა შეკვეთის ღილაკს", o.orderc], ["დაგვიკავშირდა (შეკვეთა ან კონტაქტი)", o.intent]];
+  return head + `<div class="tiles"><div class="tile"><span>ვიზიტორი</span><b>${o.v}</b><small>${o.pv} გვერდის ნახვა · ${pc(o.ret, o.v)}% დაბრუნებული</small></div>
+    <div class="tile"><span>საშუალო დრო საიტზე</span><b>${secs(o.secs)}</b><small>ჩამოსქროლა საშ. ${o.depth}%</small></div>
+    <div class="tile"><span>დაგვიკავშირდა</span><b>${o.intent}</b><small>${pc(o.intent, o.v)}% ვიზიტორებიდან</small></div>
+    <div class="tile"><span>ტელეფონიდან</span><b>${pc(o.mob, o.v)}%</b><small>${o.mob} ვიზიტორი</small></div></div>
+  <h2>ვიზიტორები დღეების მიხედვით</h2><div class="card"><div class="bars">${all.map((x, k) => `<div class="b" title="${esc(day(x.day))}: ${x.v} ვიზიტორი, ${x.intent} დაგვიკავშირდა"><em>${all.length <= 31 && x.v ? x.v : ""}</em><i style="height:${Math.max(2, Math.round((x.v / vmax) * 100))}%"></i><span>${all.length <= 31 || k % 7 === 0 ? +x.day.slice(8) : ""}</span></div>`).join("")}</div></div>
+  <div class="split2"><div><h2>გზა შეკვეთამდე</h2><div class="card funnel">${fun.map(([l, n]) => `<div><span>${l}</span><i style="width:${Math.max(1, pc(n, o.v))}%"></i><b>${n} <small class="note">${pc(n, o.v)}%</small></b></div>`).join("")}
+    <p class="hint" style="margin:6px 0 0">იმავე პერიოდში სისტემაში გაფორმდა <b>${d.orders}</b> შეკვეთა (ყველა არხიდან, მათ შორის Instagram-იდან და ზარით).</p></div></div>
+    <div><h2>საიდან მოვიდნენ</h2><div class="tw"><table class="sm"><thead><tr><th>წყარო</th><th>ვიზიტორი</th><th>დაგვიკავშირდა</th></tr></thead><tbody>${d.srcs.map(s => `<tr><td>${esc(SRC[s.src] || s.src)}</td><td>${s.v} <small class="note">${pc(s.v, o.v)}%</small></td><td>${s.intent} <small class="note">${pc(s.intent, s.v)}%</small></td></tr>`).join("")}</tbody></table></div>
+    ${d.camps.length ? `<h2>რეკლამის კამპანიები <small>utm_campaign</small></h2><div class="tw"><table class="sm"><thead><tr><th>კამპანია</th><th>ვიზიტორი</th><th>დაგვიკავშირდა</th></tr></thead><tbody>${d.camps.map(c => `<tr><td>${esc(c.camp)} <small class="note">${esc(c.src)}</small></td><td>${c.v}</td><td>${c.intent}</td></tr>`).join("")}</tbody></table></div>` : ""}</div></div>
+  <h2>სათამაშოები</h2><div class="tw"><table><thead><tr><th>სათამაშო</th><th>გვერდის ნახვა</th><th>ვიზიტორი</th><th>სიიდან დააჭირა</th><th>ფოტოები გადაფურცლა</th><th>შეკვეთის ღილაკი</th><th>კონვერსია</th></tr></thead>
+    <tbody>${d.prods.map(p => `<tr><td>${esc(p.name)}</td><td>${p.views}</td><td>${p.v}</td><td>${p.cards}</td><td>${p.gal}</td><td>${p.orderc}</td><td>${pc(p.orderc, p.v)}%</td></tr>`).join("") || `<tr><td colspan="7" class="note">ჯერ არაფერი.</td></tr>`}</tbody></table></div>
+  <div class="split2"><div><h2>რას დააჭირეს</h2><div class="tw"><table class="sm"><thead><tr><th>ღილაკი / ბმული</th><th>დაჭერა</th><th>ვიზიტორი</th></tr></thead><tbody>${d.clicks.map(c => `<tr><td>${esc(lname(c.label, d))}</td><td>${c.c}</td><td>${c.v}</td></tr>`).join("") || `<tr><td colspan="3" class="note">ჯერ არაფერი.</td></tr>`}</tbody></table></div></div>
+    <div><h2>გვერდები</h2><div class="tw"><table class="sm"><thead><tr><th>გვერდი</th><th>ნახვა</th><th>ვიზიტორი</th></tr></thead><tbody>${d.pages.map(p => `<tr><td>${esc(pname(p.path, d))}</td><td>${p.c}</td><td>${p.v}</td></tr>`).join("")}</tbody></table></div></div></div>
+  <div class="g4" style="margin-top:8px"><div><h2>მოწყობილობა</h2><div class="card">${meters(d.dev, d, k => ({ mobile: "ტელეფონი", desktop: "კომპიუტერი", tablet: "პლანშეტი" }[k] || k))}</div></div>
+    <div><h2>სისტემა</h2><div class="card">${meters(d.os, d, k => k)}</div></div>
+    <div><h2>ენა</h2><div class="card">${meters(d.lang, d, k => ({ ka: "ქართული", en: "ინგლისური" }[k] || k))}</div></div>
+    <div><h2>ახალი / დაბრუნებული</h2><div class="card">${meters([{ k: "ახალი", v: o.v - o.ret }, { k: "დაბრუნებული", v: o.ret }], d, k => k)}</div></div></div>
+  <h2>რომელ საათზე შემოდიან <small>თბილისის დროით</small></h2><div class="card"><div class="bars">${hours.map((v, h) => `<div class="b" title="${h}:00 — ${v} ვიზიტორი"><i class="${v ? "" : "lite"}" style="height:${Math.max(2, Math.round((v / hmax) * 100))}%"></i><span>${h % 3 === 0 ? h : ""}</span></div>`).join("")}</div></div>` + note;
+}
+
 // ---------- მოქმედებები ----------
 document.addEventListener("click", async e => {
   const t = e.target.closest("[data-tab]"), f = e.target.closest("[data-filter]"), b = e.target.closest("[data-op]"), rz = e.target.closest("[data-reason]"), pp = e.target.closest("[data-period]");
   if (rz) { reason[rz.dataset.reason] = rz.dataset.r; force = true; draw(); const d = document.querySelector(`[data-op=problem][data-id="${rz.dataset.reason}"]`); d && d.closest("details").setAttribute("open", ""); return; }
-  if (t) { tab = t.dataset.tab; editId = null; q = ""; say(""); if (tab === "audit") AUD.rows = null; force = true; draw(); try { S = await api("state"); force = true; draw(); } catch {} }
+  if (t) { tab = t.dataset.tab; editId = null; q = ""; say(""); if (tab === "audit") AUD.rows = null; if (tab === "pnl") { PN.d = null; PN.fail = false; } if (tab === "visits") { VS.d = null; VS.fail = false; } force = true; draw(); try { S = await api("state"); force = true; draw(); } catch {} }
   if (f) { filter = f.dataset.filter; force = true; draw(); }
   if (pp) { period = pp.dataset.period; force = true; draw(); }
+  const pv = e.target.closest("[data-pv]"), vp = e.target.closest("[data-vp]");
+  if (pv) { PN.view = pv.dataset.pv; say(""); force = true; return draw(); }
+  if (vp) { VS.per = vp.dataset.vp; VS.d = null; VS.fail = false; force = true; draw(); return; }
   if (!b) return;
   const a = b.dataset.op, id = b.dataset.id; force = true;
+  if (a === "forgot") { authMode = "forgot"; say(""); return draw(); }
+  if (a === "tologin") { authMode = ""; RESET = ""; history.replaceState(null, "", "/admin"); say(""); return draw(); }
+  if (a === "pnlpay-edit") { const p = PN.d.pay.find(x => x.id == id); if (!p) return; Object.assign(KEEP, { "pf-u": p.user_id ? String(p.user_id) : "x", "pf-n": p.user_id ? "" : p.name, "pf-f": p.fixed, "pf-d": p.per_delivery, "pf-c": p.commission, "pf-m": PN.d.now }); draw(); $("#payf")?.scrollIntoView({ behavior: "smooth" }); return; }
+  if (a === "pnlpay-stop") { if (!confirmOnce(b, "დააჭირე კიდევ ერთხელ")) return; return pnlAct(`pnl/pay/${id}/stop`, { to_month: b.dataset.to }, "ხელფასი შეწყდა (ისტორია რჩება)."); }
+  if (a === "pnlpay-del") { if (!confirmOnce(b, "წაიშალოს?")) return; return pnlAct(`pnl/pay/${id}/delete`, {}, "წაიშალა."); }
+  if (a === "pnlexp-del") { if (!confirmOnce(b, "წაიშალოს?")) return; return pnlAct(`pnl/expense/${id}/delete`, {}, "ხარჯი წაიშალა."); }
+  if (a === "pnlexp-stop") { if (!confirmOnce(b, "დააჭირე კიდევ ერთხელ")) return; return pnlAct(`pnl/expense/${id}/stop`, { to_month: b.dataset.to }, "ყოველთვიური ხარჯი შეწყდა."); }
+  if (a === "pnlmonth") { PN.view = "report"; return loadPnl(b.dataset.m); }
   if (a === "logout") { await api("logout", {}).catch(() => {}); S = null; F = null; say(""); return draw(); }
   if (a === "pw") { pw = !pw; return draw(); }
   if (a === "additem") { const p = S.products.find(p => p.left > 0) || S.products[0]; F.items.push({ product_id: p?.id || "", qty: 1, price: p?.price || 0 }); return draw(); }
@@ -355,6 +520,7 @@ function confirmOnce(b, text) { if (b.dataset.sure === "1") return true; b.datas
 
 let lookupT = null, audT = null;
 app.addEventListener("input", e => { const el = e.target;
+  if (el.dataset.keep !== undefined) { KEEP[el.id] = el.value; if (el.dataset.cost) costRow(el.dataset.cost); return; }
   if (el.id === "q") { q = el.value; pending = true; clearTimeout(lookupT); lookupT = setTimeout(() => { const pos = el.selectionStart; force = true; draw(); const n = $("#q"); if (n) { n.focus(); n.setSelectionRange(pos, pos); } }, 250); return; }
   if (el.id === "au-q") { AUD.q = el.value; clearTimeout(audT); audT = setTimeout(async () => { const pos = el.selectionStart; await loadAudit(); const n = $("#au-q"); if (n) { n.focus(); n.setSelectionRange(pos, pos); } }, 350); return; }
   if (!F || !el.closest("#f")) return;
@@ -364,6 +530,10 @@ app.addEventListener("input", e => { const el = e.target;
   if (el.dataset.fi && el.dataset.k !== "product_id") F.items[+el.dataset.fi][el.dataset.k] = +el.value || 0;
   if ($("#f-total")) $("#f-total").textContent = gel(F.items.reduce((a, i) => a + i.qty * i.price, 0) + (+F.fee || 0)); });
 app.addEventListener("change", e => { const el = e.target;
+  if (el.id === "pn-m") { PN.d = null; PN.m = el.value; loadPnl(el.value); return; }
+  if (el.id === "pf-u" || el.id === "ef-k") { KEEP[el.id] = el.value; force = true; draw(); return; }
+  if (el.dataset.keep !== undefined) { KEEP[el.id] = el.value; return; }
+  if (el.id === "vs-from" || el.id === "vs-to") { VS[el.id === "vs-from" ? "from" : "to"] = el.value; VS.per = "custom"; VS.d = null; VS.fail = false; force = true; draw(); return; }
   if (el.id === "u-tpl") { newTpl = el.value; force = true; draw(); return; }
   if (el.dataset.of !== undefined) { OF[el.dataset.of] = el.value; force = true; draw(); return; }
   if (el.id === "au-u") { AUD.user = el.value; loadAudit(); return; }
@@ -374,10 +544,19 @@ app.addEventListener("submit", async e => { e.preventDefault(); const id = e.tar
   if (id === "f") {
     if (tab === "edit") { if (await act(`orders/${editId}/edit`, F, `შეკვეთა № ${editId} შესწორდა.`)) { delete hist[editId]; editId = null; F = blank(); tab = "orders"; force = true; draw(); } }
     else if (await act("orders", F, "შეკვეთა გაფორმდა. წერილები იგზავნება.")) { F = blank(); found = ""; tab = "orders"; filter = "open"; force = true; draw(); } }
-  if (id === "uf") { if (await act("users", { name: $("#u-name").value, email: $("#u-email").value, template: newTpl, title: $("#u-title").value, password: $("#u-pass").value, perms: pickedPerms("new") }, "თანამშრომელი დაემატა. მიეცი მეილი და დროებითი პაროლი.")) { newTpl = "sales"; force = true; draw(); } }
+  if (id === "uf") { if (await act("users", { name: $("#u-name").value, email: $("#u-email").value, template: newTpl, title: $("#u-title").value, password: $("#u-pass").value, perms: pickedPerms("new") }, "თანამშრომელი დაემატა. მეილზე მიუვა ბმული საკუთარი პაროლის დასაყენებლად (ან მიეცი დროებითი პაროლი).")) { newTpl = "sales"; force = true; draw(); } }
   if (id === "rcv") { const items = [...document.querySelectorAll("[data-rc]")].map(i => ({ id: i.dataset.rc, qty: +i.value || 0 })).filter(i => i.qty > 0); act("stock/receive", { items, note: $("#rc-note").value }, "პარტია მიღებულია, მარაგი განახლდა."); }
   if (id === "adj") act("stock/adjust", { id: $("#aj-p").value, qty: +$("#aj-q").value, note: $("#aj-n").value }, "კორექცია ჩაიწერა.");
-  if (id === "pwf") { try { await api("password", { old: $("#p-old").value, new: $("#p-new").value }); pw = false; say("პაროლი შეიცვალა.", true); force = true; draw(); } catch (x) { say(x.message); } } });
+  if (id === "pwf") { try { await api("password", { old: $("#p-old").value, new: $("#p-new").value }); pw = false; say("პაროლი შეიცვალა. სხვა მოწყობილობებიდან გამოხვედი; მეილზე შეტყობინება მოგივა.", true); force = true; draw(); } catch (x) { say(x.message); } }
+  if (id === "fg") { try { await api("forgot", { email: $("#fg-email").value }); authMode = ""; say("თუ ეს მეილი სისტემაშია, ბმული გაიგზავნა. შეამოწმე ფოსტა (Spam-იც).", true); force = true; draw(); } catch (x) { say(x.message); } }
+  if (id === "rs") { if ($("#rs-1").value !== $("#rs-2").value) return say("პაროლები ერთმანეთს არ ემთხვევა.");
+    try { S = await api("reset", { token: RESET, password: $("#rs-1").value }); RESET = ""; history.replaceState(null, "", "/admin"); say("ახალი პაროლი დაყენდა. შესული ხარ.", true); force = true; draw(); } catch (x) { say(x.message); } }
+  if (id === "costf") { const items = PN.d.products.map(p => ({ id: p.id, buy: KEEP["c-buy-" + p.id] ?? p.buy, ship: KEEP["c-ship-" + p.id] ?? p.ship, pack: KEEP["c-pack-" + p.id] ?? p.pack }));
+    if (await pnlAct("pnl/costs", { items }, "თვითღირებულება შეინახა.")) Object.keys(KEEP).filter(k => k.startsWith("c-")).forEach(k => delete KEEP[k]); }
+  if (id === "payf") { const u = KEEP["pf-u"] || "";
+    if (await pnlAct("pnl/pay", { user_id: u && u !== "x" ? u : null, name: KEEP["pf-n"] || "", fixed: KEEP["pf-f"] || 0, per_delivery: KEEP["pf-d"] || 0, commission: KEEP["pf-c"] || 0, from_month: KEEP["pf-m"] || PN.d.now }, "ხელფასის პირობა შეინახა.")) Object.keys(KEEP).filter(k => k.startsWith("pf-")).forEach(k => delete KEEP[k]); }
+  if (id === "expf") { const k = KEEP["ef-k"] || "once";
+    if (await pnlAct("pnl/expense", { kind: k, day: k === "monthly" ? (KEEP["ef-mm"] || PN.d.now) : (KEEP["ef-d"] || S.today), category: KEEP["ef-c"] || PN.d.cats[0], amount: KEEP["ef-a"] || 0, note: KEEP["ef-n"] || "" }, "ხარჯი დაემატა.")) ["ef-a", "ef-n"].forEach(k => delete KEEP[k]); } });
 
-(async () => { try { S = await api("state"); } catch { S = null; } draw();
+(async () => { if (!RESET) { try { S = await api("state"); } catch { S = null; } } draw();
   setInterval(async () => { if (!S || busy || document.hidden || tab === "edit") return; try { S = await api("state"); draw(); } catch {} }, 20000); })();

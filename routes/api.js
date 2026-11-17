@@ -4,7 +4,8 @@ const db = require("../db");
 const storage = require("../lib/storage");
 const auth = require("../lib/auth");
 const { getShop, saveShop, nowPrice } = require("../lib/shop");
-const { mailSafe, mail, ready: mailReady, ZONES } = require("../lib/mail");
+const { mailSafe, mail, staffSafe, ready: mailReady, ZONES, APP_URL } = require("../lib/mail");
+const finance = require("./finance"), visits = require("./visits");
 
 const ROLES = ["admin", "sales", "courier"];
 // უფლებები: თანამშრომელი ხედავს და აკეთებს მხოლოდ იმას, რისი უფლებაც აქვს. ადმინს ყველაფერი აქვს.
@@ -55,6 +56,9 @@ async function logA(u, action, detail = "", orderId = null) {
   try { await db.run("insert into audit (at, user_id, user_name, action, detail, order_id) values ($1,$2,$3,$4,$5,$6)", [iso(), u ? u.id : null, u ? u.name : "", action, String(detail).slice(0, 2000), orderId]); }
   catch (e) { console.error("ჟურნალი:", e.message); }
 }
+
+// პაროლის დაყენების ბმული (ერთჯერადი: მიბმულია მიმდინარე პაროლზე, შეცვლისთანავე კვდება)
+const resetLink = (u, ttl) => `${APP_URL || ""}/admin?reset=${encodeURIComponent(auth.makeReset(u.id, u.pass, ttl))}`;
 
 // პირველი ადმინი იქმნება Railway Variables-დან (ADMIN_EMAIL, ADMIN_PASSWORD), მხოლოდ ცარიელ ბაზაზე
 async function ensureAdmin() {
@@ -161,14 +165,40 @@ module.exports = function register(app) {
     await logA(u, "შესვლა");
     res.json(await state(u));
   }));
+  // პაროლის აღდგენა მეილით. პასუხი ყოველთვის ერთნაირია, რომ არავინ გაიგოს, რომელი მეილია სისტემაში.
+  app.post("/api/forgot", h(async (req, res) => {
+    const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "?";
+    if (auth.throttled(ip)) fail(429, "ძალიან ბევრი მცდელობა. სცადე 10 წუთში.");
+    auth.failed(ip); // ერთი მისამართიდან 10 მოთხოვნა 10 წუთში
+    if (!mailReady()) fail(503, "მეილის სერვისი ჯერ არ მუშაობს. პაროლის შესაცვლელად მიმართე ადმინს.");
+    const u = await db.one("select * from users where email = $1 and active = true", [str(req.body.email, 160).toLowerCase()]);
+    if (u) { num(u, "id"); staffSafe("pw_reset", u, { link: resetLink(u, 3600e3) }); await logA(u, "პაროლის აღდგენის მოთხოვნა"); }
+    res.json({ ok: true });
+  }));
+  app.post("/api/reset", h(async (req, res) => {
+    const t = auth.readReset(req.body.token), pw = str(req.body.password, 200);
+    const u = t && (await db.one("select * from users where id = $1 and active = true", [t.uid]));
+    if (!u || auth.passTag(u.pass) !== t.tag) fail(400, "ბმული აღარ მოქმედებს (ვადა გაუვიდა ან უკვე გამოყენებულია). მოითხოვე ახალი.");
+    if (pw.length < 8) fail(400, "პაროლი მინიმუმ 8 სიმბოლო უნდა იყოს.");
+    num(u, "id");
+    const ver = (Number(u.session_ver) || 0) + 1, ph = auth.hash(pw);
+    await db.run("update users set pass = $1, session_ver = $2, last_login = $3 where id = $4", [ph, ver, iso(), u.id]);
+    auth.login(res, u.id, ver);
+    await logA(u, "პაროლი აღდგა მეილით");
+    staffSafe("pw_changed", u, { link: resetLink({ ...u, pass: ph }, 3600e3) });
+    res.json(await state({ ...u, session_ver: ver }));
+  }));
   app.post("/api/logout", h(async (req, res) => { auth.logout(res); res.json({}); }));
   app.get("/api/state", h(async (req, res) => res.json(await state(await need(req)))));
   app.post("/api/password", h(async (req, res) => {
     const u = await need(req);
     if (!auth.verify(str(req.body.old, 200), u.pass)) fail(400, "ძველი პაროლი არასწორია.");
     if (str(req.body.new, 200).length < 8) fail(400, "ახალი პაროლი მინიმუმ 8 სიმბოლო უნდა იყოს.");
-    await db.run("update users set pass = $1 where id = $2", [auth.hash(str(req.body.new, 200)), u.id]);
+    const ver = (Number(u.session_ver) || 0) + 1, ph = auth.hash(str(req.body.new, 200));
+    await db.run("update users set pass = $1, session_ver = $2 where id = $3", [ph, ver, u.id]);
+    auth.login(res, u.id, ver); // ეს მოწყობილობა რჩება შესული, დანარჩენები გამოდის
     await logA(u, "საკუთარი პაროლის შეცვლა");
+    staffSafe("pw_changed", u, { link: resetLink({ ...u, pass: ph }, 3600e3) });
     res.json({});
   }));
 
@@ -189,12 +219,13 @@ module.exports = function register(app) {
     const want = {}; items.forEach((i) => (want[i.p.id] = (want[i.p.id] || 0) + i.qty));
     for (const i of items) if (i.p.left < want[i.p.id]) fail(400, `„${i.p.name}“ მარაგში საკმარისი არ არის (დარჩა ${Math.max(0, i.p.left)}).`);
     const fee = !pricing || b.fee === undefined || b.fee === "" ? ZONES[zone][1] : int(b.fee, 0, 1000);
+    const costs = await finance.costMap(); // გაყიდვის მომენტის თვითღირებულება (მოგება-ზარალისთვის)
     const id = await db.tx(async (t) => {
       const o = await t.one(
         "insert into orders (created, created_by, customer, phone, email, address, zone, fee, note, delivery_date, courier_id, status, courier_note) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'') returning id",
         [iso(), u.id, customer, phone, email, str(b.address), zone, fee, str(b.note, 500), date, courier ? courier.id : null, courier ? "assigned" : "new"]
       );
-      for (const i of items) await t.run("insert into order_items (order_id, product_id, name, qty, price) values ($1,$2,$3,$4,$5)", [o.id, i.p.id, i.p.name, i.qty, i.price]);
+      for (const i of items) await t.run("insert into order_items (order_id, product_id, name, qty, price, cost) values ($1,$2,$3,$4,$5,$6)", [o.id, i.p.id, i.p.name, i.qty, i.price, costs[i.p.id]?.set ? costs[i.p.id].cost : null]);
       return Number(o.id);
     });
     await logA(u, "შეკვეთა გაფორმდა", `${customer} · ${items.map((i) => `${i.p.name} × ${i.qty} (${i.price} ₾)`).join(", ")} · მიწოდება ${fee} ₾${courier ? " · კურიერი: " + courier.name : ""}`, id);
@@ -215,7 +246,8 @@ module.exports = function register(app) {
     if (!customer || !phone) fail(400, "შეავსე სახელი და ტელეფონი.");
     if (email && !isEmail(email)) fail(400, "მეილის მისამართი არასწორია.");
     const date = /^\d{4}-\d\d-\d\d$/.test(b.delivery_date) ? b.delivery_date : o.delivery_date;
-    const old = (await db.all("select product_id, name, qty, price from order_items where order_id = $1", [o.id])).map((i) => ({ ...i, qty: Number(i.qty), price: Number(i.price) }));
+    const old = (await db.all("select product_id, name, qty, price, cost from order_items where order_id = $1", [o.id])).map((i) => ({ ...i, qty: Number(i.qty), price: Number(i.price) }));
+    const costs = await finance.costMap(), oldCost = Object.fromEntries(old.filter((i) => i.cost !== null && i.cost !== undefined).map((i) => [i.product_id, Number(i.cost)]));
     const stock = Object.fromEntries((await stockView(shop)).map((p) => [p.id, p]));
     const pricing = can(u, "order_price"), oldPrice = Object.fromEntries(old.map((i) => [i.product_id, i.price]));
     const items = (Array.isArray(b.items) ? b.items : []).slice(0, 30).map((i) => { const p = stock[String(i.product_id)]; return { p, qty: int(i.qty, 1, 999), price: pricing ? int(i.price) : p ? (oldPrice[p.id] ?? p.price) : 0 }; }).filter((i) => i.p);
@@ -228,7 +260,7 @@ module.exports = function register(app) {
     await db.tx(async (t) => {
       await t.run("update orders set customer = $1, phone = $2, email = $3, address = $4, zone = $5, fee = $6, note = $7, delivery_date = $8 where id = $9", [customer, phone, email, str(b.address), zone, fee, str(b.note, 500), date, o.id]);
       await t.run("delete from order_items where order_id = $1", [o.id]);
-      for (const i of items) await t.run("insert into order_items (order_id, product_id, name, qty, price) values ($1,$2,$3,$4,$5)", [o.id, i.p.id, i.p.name, i.qty, i.price]);
+      for (const i of items) await t.run("insert into order_items (order_id, product_id, name, qty, price, cost) values ($1,$2,$3,$4,$5,$6)", [o.id, i.p.id, i.p.name, i.qty, i.price, oldCost[i.p.id] ?? (costs[i.p.id]?.set ? costs[i.p.id].cost : null)]);
     });
     const ch = [];
     if (customer !== o.customer) ch.push(`სახელი: ${o.customer} → ${customer}`);
@@ -365,7 +397,8 @@ module.exports = function register(app) {
     if (await db.one("select id from users where email = $1", [email])) fail(400, "ეს მეილი უკვე რეგისტრირებულია.");
     const perms = role === "admin" ? "" : limitPerms(u, Array.isArray(b.perms) ? b.perms : tpl ? tpl.perms : PRESET[role]);
     const title = str(b.title, 60) || (tpl ? tpl.title : "");
-    await db.run("insert into users (name, email, pass, role, active, created, perms, title) values ($1,$2,$3,$4,true,$5,$6,$7)", [str(b.name, 80), email, auth.hash(pw), role, iso(), perms, title]);
+    const nu = await db.one("insert into users (name, email, pass, role, active, created, perms, title) values ($1,$2,$3,$4,true,$5,$6,$7) returning *", [str(b.name, 80), email, auth.hash(pw), role, iso(), perms, title]);
+    num(nu, "id"); staffSafe("welcome", nu, { link: resetLink(nu, 864e5) });
     await logA(u, "თანამშრომელი დაემატა", `${str(b.name, 80)} (${email}) · ${title || role} · უფლებები: ${role === "admin" ? "ყველა" : permNames(perms)}`);
     res.json(await state(u));
   }));
@@ -379,6 +412,7 @@ module.exports = function register(app) {
       if (!name || !isEmail(email)) fail(400, "შეავსე სახელი და სწორი მეილი.");
       if (email !== t.email && (await db.one("select id from users where email = $1", [email]))) fail(400, "ეს მეილი უკვე რეგისტრირებულია.");
       await db.run("update users set name = $1, email = $2, title = $3 where id = $4", [name, email, title, tid]);
+      if (email !== t.email) { const who = { ...t, name }; staffSafe("email_changed", who, { to: t.email, old: t.email, new: email, by: self ? "" : u.name }); staffSafe("email_changed", who, { to: email, old: t.email, new: email, by: self ? "" : u.name }); }
       if (name !== t.name) ch.push(`სახელი: ${t.name} → ${name}`); if (email !== t.email) ch.push(`მეილი: ${t.email} → ${email}`); if (title !== (t.title || "")) ch.push(`თანამდებობა: ${t.title || "—"} → ${title || "—"}`);
     }
     if (b.perms !== undefined) {
@@ -399,6 +433,8 @@ module.exports = function register(app) {
     if (b.password !== undefined) {
       if (str(b.password, 200).length < 8) fail(400, "პაროლი მინიმუმ 8 სიმბოლო უნდა იყოს.");
       await db.run("update users set pass = $1" + (self ? "" : ", session_ver = coalesce(session_ver, 0) + 1") + " where id = $2", [auth.hash(str(b.password, 200)), tid]);
+      const fresh = await db.one("select * from users where id = $1", [tid]); num(fresh, "id");
+      staffSafe("pw_changed", fresh, { by: self ? "" : u.name, link: resetLink(fresh, 3600e3) });
       ch.push("პაროლი შეიცვალა");
     }
     if (b.logoutAll) {
@@ -424,6 +460,7 @@ module.exports = function register(app) {
   app.post("/api/emails/:id/retry", h(async (req, res) => {
     const u = await need(req, "emails"), e = await db.one("select * from emails where id = $1", [int(req.params.id)]);
     if (!e || !e.to_addr) fail(400, "ვერ გაიგზავნა.");
+    if (!e.order_id) fail(400, "ეს წერილი (პაროლი, ანგარიში) ხელახლა არ იგზავნება უსაფრთხოების გამო. საჭიროების შემთხვევაში თანამშრომელმა თავიდან მოითხოვოს.");
     await db.run("delete from emails where id = $1", [e.id]);
     await mail(e.kind, Number(e.order_id), e.to_addr);
     res.json(await state(u));
@@ -487,6 +524,9 @@ module.exports = function register(app) {
     const has = new Set((await db.all("select product_id from stock")).map((r) => r.product_id));
     return Object.fromEntries((await stockView(shop)).filter((p) => has.has(p.id)).map((p) => [p.id, Math.max(0, p.left)]));
   }
+
+  finance(app, { h, need, fail, logA, getShop, stockView, nowPrice });
+  visits(app, { h, need, fail, getShop });
 
   return { me, ensureAdmin, stockLeft, can };
 };

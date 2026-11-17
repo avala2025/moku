@@ -71,7 +71,7 @@ app.get("/sitemap.xml", async (req, res) => {
   catch (err) { console.error(err); res.status(503).send(""); }
 });
 app.get("/robots.txt", (req, res) => {
-  sendText(req, res, `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\n\nSitemap: ${baseUrl(req)}/sitemap.xml\n`, "text/plain; charset=utf-8", "public, max-age=3600");
+  sendText(req, res, `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /t\n\nSitemap: ${baseUrl(req)}/sitemap.xml\n`, "text/plain; charset=utf-8", "public, max-age=3600");
 });
 app.get("/site.webmanifest", (req, res) => {
   sendText(req, res, JSON.stringify({ name: "MOKU", short_name: "MOKU", start_url: "/", display: "browser", background_color: "#f2f0eb", theme_color: "#f2f0eb",
