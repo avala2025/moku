@@ -65,7 +65,7 @@ const total = o => o.items.reduce((a, i) => a + i.qty * i.price, 0) + o.fee;
 const sumOf = list => list.reduce((a, o) => a + total(o), 0);
 const place = o => { const z = ZONE[o.zone]?.[0] || "", a = o.address || ""; if (!a) return z; return o.zone === "tbilisi" && /^(თბილისი|tbilisi)/i.test(a.trim()) ? a : z + ", " + a; };
 const matches = o => !q || [o.customer, o.phone, o.address, String(o.id), ...o.items.map(i => i.name)].join(" ").toLowerCase().includes(q.toLowerCase());
-const say = (m, ok) => { const e = $("#err"); e.textContent = m || ""; e.classList.toggle("ok", !!ok); };
+const say = (m, ok) => { const e = $("#err"); e.textContent = m || ""; e.classList.toggle("ok", !!ok); if (m && e.getBoundingClientRect().top < 0) e.scrollIntoView({ behavior: "smooth", block: "start" }); };
 const money = () => has("finance_view");
 
 async function api(path, data) {
@@ -272,21 +272,21 @@ function permBox(prefix, list, disabled) {
 function users() {
   const tpl = TEMPLATES[newTpl] || TEMPLATES.sales, ad = newTpl === "admin";
   return `<form class="card" id="uf" autocomplete="off"><b>ახალი თანამშრომელი</b><div class="g2">
-    <label for="u-name">სახელი, გვარი<input id="u-name" required></label><label for="u-email">მეილი (ამით შევა სისტემაში)<input id="u-email" type="email" required></label>
+    <label for="u-name">სახელი, გვარი<input id="u-name" data-keep value="${kv("u-name")}" required></label><label for="u-email">მეილი (ამით შევა სისტემაში)<input id="u-email" data-keep type="email" value="${kv("u-email")}" required></label>
     <label for="u-tpl">შაბლონი (უფლებები თავისით მოინიშნება, მერე შეგიძლია შეცვალო)<select id="u-tpl">${Object.entries(TEMPLATES).filter(([k]) => k !== "admin" || isAdmin()).map(([k, v]) => `<option value="${k}" ${k === newTpl ? "selected" : ""}>${v[0]}</option>`).join("")}</select></label>
-    <label for="u-title">თანამდებობა (ჩანს სახელთან)<input id="u-title" value="${esc(ad ? "ადმინი" : tpl[0])}"></label>
-    <label for="u-pass">დროებითი პაროლი (მინ. 8 სიმბოლო; მერე თავად შეცვლის)<input id="u-pass" minlength="8" required></label></div>
-    <span class="hint" style="margin:10px 0 4px;display:block">${ad ? "ადმინს ყველა უფლება აქვს." : "უფლებები"}</span>${ad ? "" : permBox("new", tpl[1])}
+    <label for="u-title">თანამდებობა (ჩანს სახელთან)<input id="u-title" data-keep value="${kv("u-title", ad ? "ადმინი" : tpl[0])}"></label>
+    <label for="u-pass">დროებითი პაროლი (მინ. 8 სიმბოლო; მეილზეც მიუვა ბმული საკუთარი პაროლისთვის)<input id="u-pass" data-keep minlength="8" value="${kv("u-pass")}" required></label></div>
+    <span class="hint" style="margin:10px 0 4px;display:block">${ad ? "ადმინს ყველა უფლება აქვს." : "უფლებები"}</span>${ad ? "" : permBox("new", KEEP.newPerms || tpl[1])}
     <div class="acts"><button class="btn" type="submit">დამატება</button></div></form>
   <h2>თანამშრომლები <small>${S.users.filter(u => u.active).length} აქტიური</small></h2><div class="list">${S.users.map(u => {
     const self = u.id === S.me.id, lockAdmin = u.role === "admin" && !isAdmin(), ed = editUser === u.id;
     return `<div class="card${u.active ? "" : " off"}"><div class="top"><b>${esc(u.name)}</b><span class="pill ${u.active ? "picked" : "cancelled"}">${esc(u.title || ROLE[u.role])}${u.active ? "" : " · გათიშულია"}</span><small>${esc(u.email)} · ბოლო შესვლა: ${ago(u.last_login)}</small></div>
     ${u.role === "admin" ? `<div class="note">ადმინს ყველა უფლება აქვს (კურიერის რეჟიმის გარდა).</div>` : `<div class="note">${u.perms.length ? u.perms.map(p => PNAME[p]).filter(Boolean).join(" · ") : "უფლებები არ აქვს"}</div>`}
     ${lockAdmin ? "" : `<details ${ed ? "open" : ""} data-ud="${u.id}"><summary class="note">შეცვლა</summary><div class="ued">
-      <div class="g3"><label for="ue-n-${u.id}">სახელი<input id="ue-n-${u.id}" value="${esc(u.name)}"></label><label for="ue-e-${u.id}">მეილი<input id="ue-e-${u.id}" type="email" value="${esc(u.email)}"></label><label for="ue-t-${u.id}">თანამდებობა<input id="ue-t-${u.id}" value="${esc(u.title)}"></label></div>
+      <div class="g3"><label for="ue-n-${u.id}">სახელი<input id="ue-n-${u.id}" data-keep value="${kv("ue-n-" + u.id, u.name)}"></label><label for="ue-e-${u.id}">მეილი<input id="ue-e-${u.id}" data-keep type="email" value="${kv("ue-e-" + u.id, u.email)}"></label><label for="ue-t-${u.id}">თანამდებობა<input id="ue-t-${u.id}" data-keep value="${kv("ue-t-" + u.id, u.title)}"></label></div>
       <div class="acts"><button class="btn ghost" data-op="saveinfo" data-id="${u.id}">მონაცემების შენახვა</button></div>
-      ${u.role === "admin" || self ? `<div class="note">${self ? "საკუთარ უფლებებს ვერ შეცვლი." : ""}</div>` : `<div class="acts"><span class="note">შაბლონი:</span>${Object.entries(TEMPLATES).filter(([k]) => k !== "admin").map(([k, v]) => `<button type="button" class="chipbtn" data-op="usetpl" data-id="${u.id}" data-t="${k}">${v[0]}</button>`).join("")}</div>${permBox(u.id, u.perms)}<div class="acts"><button class="btn" data-op="saveperms" data-id="${u.id}">უფლებების შენახვა</button></div>`}
-      <div class="acts"><input id="np-${u.id}" placeholder="ახალი პაროლი (მინ. 8)" aria-label="ახალი პაროლი" style="max-width:220px"><button class="btn ghost" data-op="resetpw" data-id="${u.id}">პაროლის შეცვლა</button>
+      ${u.role === "admin" || self ? `<div class="note">${self ? "საკუთარ უფლებებს ვერ შეცვლი." : ""}</div>` : `<div class="acts"><span class="note">შაბლონი:</span>${Object.entries(TEMPLATES).filter(([k]) => k !== "admin").map(([k, v]) => `<button type="button" class="chipbtn" data-op="usetpl" data-id="${u.id}" data-t="${k}">${v[0]}</button>`).join("")}</div>${permBox(u.id, KEEP["perms:" + u.id] || u.perms)}<div class="acts"><button class="btn" data-op="saveperms" data-id="${u.id}">უფლებების შენახვა</button></div>`}
+      <div class="acts"><input id="np-${u.id}" data-keep value="${kv("np-" + u.id)}" placeholder="ახალი პაროლი (მინ. 8)" aria-label="ახალი პაროლი" style="max-width:220px"><button class="btn ghost" data-op="resetpw" data-id="${u.id}">პაროლის შეცვლა</button>
         <button class="btn ghost" data-op="logoutall" data-id="${u.id}">ყველა მოწყობილობიდან გამოყვანა</button>
         ${self ? "" : `<button class="btn ${u.active ? "bad" : "ghost"}" data-op="toggleuser" data-id="${u.id}" data-on="${u.active ? 0 : 1}">${u.active ? "გათიშვა" : "ჩართვა"}</button>`}</div>
       <p class="hint" style="margin:0">გათიშული თანამშრომელი ვეღარ შევა, მაგრამ მისი შეკვეთები და ისტორია რჩება. პაროლის შეცვლა და გათიშვა მას ყველგან გამოიყვანს.</p></div></details>`}</div>`; }).join("")}</div>`;
@@ -506,12 +506,12 @@ document.addEventListener("click", async e => {
   if (a === "pick") return act(`orders/${id}/pick`, {}, "მონიშნულია. მყიდველს წერილი გაეგზავნა.");
   if (a === "cdeliver") return act(`orders/${id}/deliver`, { note: $(`#n-${id}`)?.value || "" }, "ჩაბარებულია.");
   if (a === "problem") { const r = reason[id] || ""; const note = r === "სხვა" ? ($(`#n-${id}`)?.value || "") : r; delete reason[id]; return act(`orders/${id}/problem`, { note }); }
-  if (a === "pgall") { const boxes = [...document.querySelectorAll(`[data-perm="${b.dataset.pre}"][data-g="${CSS.escape(b.dataset.g)}"]`)].filter(c => !c.disabled), on = boxes.every(c => c.checked); boxes.forEach(c => (c.checked = !on)); b.textContent = on ? "ყველა" : "მოხსნა"; return; }
-  if (a === "usetpl") { const list = TEMPLATES[b.dataset.t][1]; document.querySelectorAll(`[data-perm="${id}"]`).forEach(c => { if (!c.disabled) c.checked = list.includes(c.value); }); $(`#ue-t-${id}`).value = TEMPLATES[b.dataset.t][0]; return; }
+  if (a === "pgall") { const boxes = [...document.querySelectorAll(`[data-perm="${b.dataset.pre}"][data-g="${CSS.escape(b.dataset.g)}"]`)].filter(c => !c.disabled), on = boxes.every(c => c.checked); boxes.forEach(c => (c.checked = !on)); b.textContent = on ? "ყველა" : "მოხსნა"; const pre = b.dataset.pre; if (pre === "new") KEEP.newPerms = pickedPerms("new"); else KEEP["perms:" + pre] = pickedPerms(pre); return; }
+  if (a === "usetpl") { const list = TEMPLATES[b.dataset.t][1]; document.querySelectorAll(`[data-perm="${id}"]`).forEach(c => { if (!c.disabled) c.checked = list.includes(c.value); }); $(`#ue-t-${id}`).value = KEEP["ue-t-" + id] = TEMPLATES[b.dataset.t][0]; KEEP["perms:" + id] = pickedPerms(id); return; }
   if (a === "toggleuser") { editUser = +id; if (b.dataset.on === "0" && !confirmOnce(b, "დააჭირე კიდევ ერთხელ გასათიშად")) return; return act(`users/${id}`, { active: b.dataset.on === "1" }, b.dataset.on === "1" ? "ჩაირთო." : "გაითიშა. სისტემაში ვეღარ შევა."); }
-  if (a === "saveperms") { editUser = +id; return act(`users/${id}`, { perms: pickedPerms(id), title: $(`#ue-t-${id}`).value }, "უფლებები შეინახა. თანამშრომელი მაშინვე მხოლოდ ამას დაინახავს."); }
+  if (a === "saveperms") { editUser = +id; delete KEEP["perms:" + id]; return act(`users/${id}`, { perms: pickedPerms(id), title: $(`#ue-t-${id}`).value }, "უფლებები შეინახა. თანამშრომელი მაშინვე მხოლოდ ამას დაინახავს."); }
   if (a === "saveinfo") { editUser = +id; return act(`users/${id}`, { name: $(`#ue-n-${id}`).value, email: $(`#ue-e-${id}`).value, title: $(`#ue-t-${id}`).value }, "შეინახა."); }
-  if (a === "resetpw") { editUser = +id; return act(`users/${id}`, { password: $(`#np-${id}`).value }, "პაროლი შეიცვალა. ძველი შესვლები გაუქმდა."); }
+  if (a === "resetpw") { editUser = +id; const npw = $(`#np-${id}`).value; delete KEEP["np-" + id]; return act(`users/${id}`, { password: npw }, "პაროლი შეიცვალა. ძველი შესვლები გაუქმდა."); }
   if (a === "logoutall") { editUser = +id; if (!confirmOnce(b, "დააჭირე კიდევ ერთხელ")) return; return act(`users/${id}`, { logoutAll: true }, "ყველა მოწყობილობიდან გამოვიდა."); }
   if (a === "retry") return act(`emails/${id}/retry`);
 });
@@ -534,7 +534,8 @@ app.addEventListener("change", e => { const el = e.target;
   if (el.id === "pf-u" || el.id === "ef-k") { KEEP[el.id] = el.value; force = true; draw(); return; }
   if (el.dataset.keep !== undefined) { KEEP[el.id] = el.value; return; }
   if (el.id === "vs-from" || el.id === "vs-to") { VS[el.id === "vs-from" ? "from" : "to"] = el.value; VS.per = "custom"; VS.d = null; VS.fail = false; force = true; draw(); return; }
-  if (el.id === "u-tpl") { newTpl = el.value; force = true; draw(); return; }
+  if (el.id === "u-tpl") { newTpl = el.value; delete KEEP.newPerms; delete KEEP["u-title"]; force = true; draw(); return; }
+  if (el.dataset.perm) { const pre = el.dataset.perm; if (pre === "new") KEEP.newPerms = pickedPerms("new"); else KEEP["perms:" + pre] = pickedPerms(pre); return; }
   if (el.dataset.of !== undefined) { OF[el.dataset.of] = el.value; force = true; draw(); return; }
   if (el.id === "au-u") { AUD.user = el.value; loadAudit(); return; }
   if (F && el.dataset.f === "zone") { F.fee = ZONE[F.zone][1]; force = true; draw(); }
@@ -544,7 +545,7 @@ app.addEventListener("submit", async e => { e.preventDefault(); const id = e.tar
   if (id === "f") {
     if (tab === "edit") { if (await act(`orders/${editId}/edit`, F, `შეკვეთა № ${editId} შესწორდა.`)) { delete hist[editId]; editId = null; F = blank(); tab = "orders"; force = true; draw(); } }
     else if (await act("orders", F, "შეკვეთა გაფორმდა. წერილები იგზავნება.")) { F = blank(); found = ""; tab = "orders"; filter = "open"; force = true; draw(); } }
-  if (id === "uf") { if (await act("users", { name: $("#u-name").value, email: $("#u-email").value, template: newTpl, title: $("#u-title").value, password: $("#u-pass").value, perms: pickedPerms("new") }, "თანამშრომელი დაემატა. მეილზე მიუვა ბმული საკუთარი პაროლის დასაყენებლად (ან მიეცი დროებითი პაროლი).")) { newTpl = "sales"; force = true; draw(); } }
+  if (id === "uf") { if (await act("users", { name: $("#u-name").value, email: $("#u-email").value, template: newTpl, title: $("#u-title").value, password: $("#u-pass").value, perms: pickedPerms("new") }, "თანამშრომელი დაემატა. მეილზე მიუვა ბმული საკუთარი პაროლის დასაყენებლად (ან მიეცი დროებითი პაროლი).")) { newTpl = "sales"; ["u-name", "u-email", "u-title", "u-pass", "newPerms"].forEach(k => delete KEEP[k]); force = true; draw(); } }
   if (id === "rcv") { const items = [...document.querySelectorAll("[data-rc]")].map(i => ({ id: i.dataset.rc, qty: +i.value || 0 })).filter(i => i.qty > 0); act("stock/receive", { items, note: $("#rc-note").value }, "პარტია მიღებულია, მარაგი განახლდა."); }
   if (id === "adj") act("stock/adjust", { id: $("#aj-p").value, qty: +$("#aj-q").value, note: $("#aj-n").value }, "კორექცია ჩაიწერა.");
   if (id === "pwf") { try { await api("password", { old: $("#p-old").value, new: $("#p-new").value }); pw = false; say("პაროლი შეიცვალა. სხვა მოწყობილობებიდან გამოხვედი; მეილზე შეტყობინება მოგივა.", true); force = true; draw(); } catch (x) { say(x.message); } }
@@ -559,4 +560,4 @@ app.addEventListener("submit", async e => { e.preventDefault(); const id = e.tar
     if (await pnlAct("pnl/expense", { kind: k, day: k === "monthly" ? (KEEP["ef-mm"] || PN.d.now) : (KEEP["ef-d"] || S.today), category: KEEP["ef-c"] || PN.d.cats[0], amount: KEEP["ef-a"] || 0, note: KEEP["ef-n"] || "" }, "ხარჯი დაემატა.")) ["ef-a", "ef-n"].forEach(k => delete KEEP[k]); } });
 
 (async () => { if (!RESET) { try { S = await api("state"); } catch { S = null; } } draw();
-  setInterval(async () => { if (!S || busy || document.hidden || tab === "edit") return; try { S = await api("state"); draw(); } catch {} }, 20000); })();
+  setInterval(async () => { if (!S || busy || document.hidden || tab === "edit") return; try { S = await api("state"); if (!["users", "pnl"].includes(tab)) draw(); } catch {} }, 20000); })();
