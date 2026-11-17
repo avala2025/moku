@@ -73,7 +73,7 @@ input,select,textarea{background:var(--surface);border:1px solid var(--line);bor
 .irow .th{width:46px;height:46px;border-radius:10px;overflow:hidden;background:var(--birch)}
 .irow .th img{width:100%;height:100%;object-fit:cover;display:block}
 .irow button{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
-@media(max-width:640px){.irow{grid-template-columns:46px minmax(0,1fr) 38px}.irow label:nth-child(3),.irow label:nth-child(4){grid-column:2/3}}
+@media(max-width:640px){.irow{grid-template-columns:46px minmax(0,1fr) minmax(0,1fr) 44px;padding-top:10px;border-top:1px solid var(--line)}.irow label:nth-child(2){grid-column:2/5}.irow label:nth-child(3){grid-column:1/3}.irow label:nth-child(4){grid-column:3/4}}
 .split{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
 @media(max-width:860px){.split{grid-template-columns:1fr}}
 .stocklist{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:14.5px}

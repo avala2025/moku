@@ -233,6 +233,14 @@ function client() {
     const au = (await admin("/api/audit")).j.rows; assert.ok(au.some((x) => x.action === "პარტია მიღებულია") && au.some((x) => x.action === "საიტი შეიცვალა" && x.user_name === "სოფო") && au.some((x) => x.action.startsWith("თანამშრომელი:")), "audit log");
     assert.equal((await sofo("/api/audit")).s, 403, "no audit permission");
 
+    // ---- მხოლოდ ფინანსები: სტატისტიკა ყველა შეკვეთით, მყიდველის კონტაქტის გარეშე ----
+    await admin("/api/users", { name: "ფინ", email: "fin@moku.ge", template: "sales", perms: ["finance_view"], password: "pass12345" });
+    const fin = client(); await fin("/api/login", { email: "fin@moku.ge", password: "pass12345" }); r = await fin("/api/state");
+    assert.ok(r.j.orders.length > 2 && r.j.orders.every((o) => !o.phone && o.customer === "მყიდველი"), "finance-only sees all orders without customer contacts");
+    await admin("/api/users", { name: "სტოკი", email: "stk@moku.ge", template: "sales", perms: ["stock_receive"], password: "pass12345" });
+    const stk = client(); await stk("/api/login", { email: "stk@moku.ge", password: "pass12345" }); r = await stk("/api/state");
+    assert.ok(r.j.products && r.j.products[0].stock_in !== undefined && r.j.orders.length === 0, "stock-receive-only user gets stock but no orders");
+
     // ---- პაროლის აღდგენა მეილით, შეტყობინებები ----
     assert.ok(mails.some((m) => m.to === "sofo@moku.ge" && m.subject.includes("ანგარიში") && m.body.includes("https://moku.ge/admin?reset=")), "welcome mail with set-password link");
     const nm = mails.length; r = await anon("/api/forgot", { email: "sofo@moku.ge" }); assert.equal(r.s, 200); await wait(300);

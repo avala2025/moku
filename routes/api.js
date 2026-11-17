@@ -87,7 +87,7 @@ async function stockView(shop) {
 async function ordersFor(u, mode = "office") {
   let orders;
   if (mode === "courier") orders = await db.all("select * from orders where courier_id = $1 and (status in ('assigned','picked','problem') or (status = 'delivered' and done_at >= $2)) order by delivery_date, id", [u.id, todayStartIso()]);
-  else if (can(u, "orders_all")) orders = await db.all("select * from orders order by id desc limit 3000");
+  else if (can(u, "orders_all", "couriers_view", "finance_view")) orders = await db.all("select * from orders order by id desc limit 3000"); // კურიერების ფურცელს და სტატისტიკას ყველა შეკვეთა სჭირდება
   else if (can(u, "order_create")) orders = await db.all("select * from orders where created_by = $1 order by id desc limit 200", [u.id]);
   else orders = [];
   if (!orders.length) return [];
@@ -96,7 +96,7 @@ async function ordersFor(u, mode = "office") {
   return orders.map((o) => { num(o, "id", "created_by", "courier_id", "fee"); o.items = items.filter((i) => Number(i.order_id) === o.id).map((i) => ({ product_id: i.product_id, name: i.name, qty: Number(i.qty), price: Number(i.price) })); return o; });
 }
 
-const OFFICE = ["order_create", "orders_all", "orders_assign", "couriers_view", "stock_view", "stock_edit", "csv", "emails", "users"];
+const OFFICE = PERMS.filter((p) => p !== "courier" && !SITE.includes(p)); // ოფისის ნებისმიერი უფლება
 async function couriersList() {
   return (await db.all("select * from users where active = true order by name")).filter((c) => can(c, "courier")).map((c) => ({ id: Number(c.id), name: c.name }));
 }
@@ -112,7 +112,9 @@ async function state(u) {
   const shop = await getShop();
   let products = await stockView(shop);
   const names = Object.fromEntries((await db.all("select id, name from users")).map((x) => [Number(x.id), x.name]));
-  const orders = (await ordersFor(u)).map((o) => ({ ...o, courier: names[o.courier_id] || "", seller: names[o.created_by] || "" }));
+  // ვისაც მხოლოდ ფინანსების ნახვა აქვს, სხვის შეკვეთაში მყიდველის კონტაქტს ვერ ხედავს
+  const privacy = !can(u, "orders_all", "couriers_view");
+  const orders = (await ordersFor(u)).map((o) => ({ ...o, courier: names[o.courier_id] || "", seller: names[o.created_by] || "", ...(privacy && o.created_by !== u.id ? { customer: "მყიდველი", phone: "", email: "", address: "", note: "", courier_note: "" } : {}) }));
   const thumbs = Object.fromEntries(shop.products.map((p) => [p.id, p.imgs[0] ? p.imgs[0][0] : ""]));
   products = products.map((p) => ({ ...p, img: thumbs[p.id] || "" }));
   if (!can(u, "stock_edit", "stock_receive")) products = products.map(({ id, name, price, left, hidden, img }) => ({ id, name, price, left, hidden, img }));

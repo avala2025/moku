@@ -149,7 +149,7 @@ function home() {
   const today = S.orders.filter(o => live(o) && String(o.created).slice(0, 10) === S.today), month = S.orders.filter(o => live(o) && String(o.created).slice(0, 7) === S.today.slice(0, 7));
   const delivered = month.filter(o => o.status === "delivered");
   const units = S.products.reduce((a, p) => a + Math.max(0, p.left), 0);
-  return `${S.mailReady ? "" : `<div class="msg" style="margin-bottom:14px">მეილის სერვისი ჯერ არ არის დაყენებული, ამიტომ წერილები არ იგზავნება. ისინი ჩანს „მეილები“ განყოფილებაში, როგორც გაუგზავნელი.</div>`}
+  return `${S.mailReady || !has("emails") ? "" : `<div class="msg" style="margin-bottom:14px">მეილის სერვისი ჯერ არ არის დაყენებული, ამიტომ წერილები არ იგზავნება. ისინი ჩანს „მეილები“ განყოფილებაში, როგორც გაუგზავნელი.</div>`}
   <div class="tiles"><div class="tile"><span>დღეს</span><b>${today.length}</b><small>შეკვეთა${m ? " · " + gel(sumOf(today)) : ""}</small></div>
     <div class="tile"><span>ამ თვეში</span><b>${month.length}</b><small>შეკვეთა${m ? " · " + gel(sumOf(month)) : ""} · ჩაბარდა ${delivered.length}</small></div>
     <div class="tile"><span>ჯერ კურიერს არ აუღია</span><b>${n("new") + n("assigned")}</b><small>შეკვეთა${n("new") ? ` · ${n("new")} კურიერის გარეშე` : ""}</small></div>
@@ -163,7 +163,7 @@ function home() {
 function orders() {
   const groups = { open: o => OPEN.includes(o.status), delivered: o => o.status === "delivered", closed: o => ["returned", "cancelled"].includes(o.status), all: () => true };
   const fx = o => (!OF.from || String(o.created).slice(0, 10) >= OF.from) && (!OF.to || String(o.created).slice(0, 10) <= OF.to) && (!OF.seller || o.created_by == OF.seller) && (!OF.courier || o.courier_id == OF.courier) && matches(o);
-  const base = S.orders.filter(fx), shown = base.filter(groups[filter]);
+  const base = S.orders.filter(o => (has("orders_all") || o.created_by === S.me.id) && fx(o)), shown = base.filter(groups[filter]);
   const sellers = [...new Map(S.orders.map(o => [o.created_by, o.seller])).entries()];
   const any = OF.from || OF.to || OF.seller || OF.courier;
   return `<div class="search"><input id="q" type="search" placeholder="ძებნა: სახელი, ტელეფონი, მისამართი, №, სათამაშო" value="${esc(q)}" aria-label="ძებნა">${has("csv") ? `<a class="btn ghost" href="/api/orders.csv">Excel</a>` : ""}</div>
@@ -181,7 +181,7 @@ const stockList = () => `<ul class="stocklist">${S.products.filter(p => !p.hidde
 function newOrder() {
   const ed = tab === "edit", pr = has("order_price"), lock = pr ? "" : "readonly title=\"ფასის შეცვლის უფლება არ გაქვს\"";
   const sum = F.items.reduce((a, i) => a + (+i.qty || 0) * (+i.price || 0), 0) + (+F.fee || 0);
-  const mine = S.orders.filter(o => String(o.created).slice(0, 10) === S.today && !["cancelled", "returned"].includes(o.status) && (has("orders_all") ? o.created_by === S.me.id : true));
+  const mine = S.orders.filter(o => String(o.created).slice(0, 10) === S.today && !["cancelled", "returned"].includes(o.status) && o.created_by === S.me.id);
   return `${ed ? `<div class="daybar"><span>შეკვეთის <b>№ ${editId}</b> შესწორება</span><button class="link" data-op="editcancel">გაუქმება და დაბრუნება</button></div>` : `<div class="daybar"><span>დღეს გაფორმებული: <b>${mine.length}</b> შეკვეთა</span><span>სულ <b>${gel(sumOf(mine))}</b></span></div>`}
   <div class="split" style="margin-top:12px"><form class="card" id="f" autocomplete="off" style="gap:12px"><div class="g2">
     <label for="f-phone">ტელეფონი${ed ? "" : " (თუ ადრე შეუკვეთავს, დანარჩენი თავად შეივსება)"}<input id="f-phone" data-f="phone" value="${esc(F.phone)}" inputmode="tel" required>${found ? `<span class="found">${esc(found)}</span>` : ""}</label>
