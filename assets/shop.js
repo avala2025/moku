@@ -25,17 +25,81 @@
     });
   });
 
-  // სათამაშოს გალერეა
-  var main = $("#pp-main");
-  $$(".pp-gal .thumbs button").forEach(function (b) {
-    b.addEventListener("click", function () {
-      if (!main) return;
-      main.srcset = b.getAttribute("data-srcset");
-      main.src = b.getAttribute("data-src");
-      main.classList.toggle("cut", b.getAttribute("data-cut") === "1");
-      $$(".pp-gal .thumbs button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+  // მენიუ ტელეფონზე
+  var burger = $("#burger"), head = $("header");
+  if (burger && head) {
+    var setMenu = function (on) { head.classList.toggle("open", on); burger.setAttribute("aria-expanded", String(on)); };
+    burger.addEventListener("click", function () { setMenu(!head.classList.contains("open")); });
+    $$("nav a", head).forEach(function (a) { a.addEventListener("click", function () { setMenu(false); }); });
+    document.addEventListener("click", function (e) { if (!head.contains(e.target)) setMenu(false); });
+  }
+
+  // სათამაშოს გალერეა: პატარა ფოტოები, თითის გასმა, დიდი ფოტო დაჭერით
+  var main = $("#pp-main"), shot = $(".pp-shot"), tbs = $$(".pp-gal .thumbs button"), cur = 0;
+  var shots = tbs.length ? tbs.map(function (b) { return { src: b.getAttribute("data-src"), set: b.getAttribute("data-srcset"), full: b.getAttribute("data-full"), cut: b.getAttribute("data-cut") === "1" }; })
+    : main ? [{ src: main.getAttribute("src"), set: main.getAttribute("srcset"), full: main.getAttribute("data-full"), cut: main.classList.contains("cut") }] : [];
+  var dots = null;
+  // არაკვადრატული ფოტო მთლიანად ჩანს (არ იჭრება)
+  function fit() { if (!main || !main.naturalWidth) return; var r = main.naturalWidth / main.naturalHeight; main.classList.toggle("fit", !main.classList.contains("cut") && (r < 0.9 || r > 1.12)); }
+  function show(k) {
+    if (!main || !shots.length) return;
+    cur = (k + shots.length) % shots.length;
+    var x = shots[cur];
+    main.classList.remove("fit");
+    main.classList.toggle("cut", x.cut);
+    main.srcset = x.set; main.src = x.src;
+    tbs.forEach(function (b, i) { b.setAttribute("aria-pressed", String(i === cur)); });
+    if (dots) $$("i", dots).forEach(function (d, i) { d.classList.toggle("on", i === cur); });
+  }
+  function swipe(el, go) {
+    var x0 = null, y0 = 0;
+    el.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+    el.addEventListener("touchend", function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) { el._swiped = Date.now(); go(dx < 0 ? 1 : -1); }
+    }, { passive: true });
+  }
+  if (main) {
+    main.addEventListener("load", fit); if (main.complete) fit();
+    tbs.forEach(function (b, i) { b.addEventListener("click", function () { show(i); }); });
+    if (shots.length > 1 && shot) {
+      dots = document.createElement("div"); dots.className = "dots"; dots.setAttribute("aria-hidden", "true");
+      dots.innerHTML = shots.map(function (_, i) { return "<i" + (i ? "" : ' class="on"') + "></i>"; }).join("");
+      shot.parentNode.insertBefore(dots, shot.nextSibling);
+      swipe(shot, function (d) { show(cur + d); });
+    }
+    if (shot) shot.addEventListener("click", function () { if (shot._swiped && Date.now() - shot._swiped < 400) return; openLb(); });
+  }
+  var lb = null;
+  function openLb() {
+    if (lb || !shots.length) return;
+    lb = document.createElement("div"); lb.className = "lb"; lb.setAttribute("role", "dialog"); lb.setAttribute("aria-modal", "true");
+    var many = shots.length > 1;
+    lb.innerHTML = '<img alt=""><button type="button" class="lb-x" aria-label="Close">×</button>' + (many ? '<button type="button" class="lb-p" aria-label="Previous">‹</button><button type="button" class="lb-n" aria-label="Next">›</button><span class="lb-c"></span>' : "");
+    var im = $("img", lb), c = $(".lb-c", lb);
+    var paint = function () { im.src = shots[cur].full || shots[cur].src; if (c) c.textContent = (cur + 1) + " / " + shots.length; };
+    var close = function () { if (!lb) return; document.removeEventListener("keydown", key); lb.remove(); lb = null; document.documentElement.style.overflow = ""; };
+    var step = function (d) { show(cur + d); paint(); };
+    var key = function (e) { if (e.key === "Escape") close(); else if (e.key === "ArrowRight") step(1); else if (e.key === "ArrowLeft") step(-1); };
+    lb.addEventListener("click", function (e) {
+      if (lb._swiped && Date.now() - lb._swiped < 400) return;
+      var b = e.target.closest("button");
+      if (b && b.classList.contains("lb-p")) return step(-1);
+      if (b && b.classList.contains("lb-n")) return step(1);
+      if (b || e.target === lb) close();
     });
-  });
+    if (many) swipe(lb, step);
+    document.addEventListener("keydown", key);
+    document.documentElement.style.overflow = "hidden";
+    paint(); document.body.appendChild(lb); $(".lb-x", lb).focus();
+  }
+
+  // ტელეფონზე შეკვეთის ზოლი: იმალება, როცა შეკვეთის ღილაკები ისედაც ეკრანზეა
+  var bb = $("#buybar"), acts = $(".pp-info .actions");
+  if (bb && acts && "IntersectionObserver" in window) {
+    new IntersectionObserver(function (es) { bb.classList.toggle("away", es[0].isIntersecting); }).observe(acts);
+  }
 
   // შეკვეთის ტექსტის კოპირება
   var copy = $("#copy");
@@ -92,7 +156,10 @@
       if (a.id === "copy") return ["order_copy"];
       if (/wa\.me\//.test(h)) return [a.closest(".pp") ? "order_wa" : "contact_wa"];
       if (a.hasAttribute("data-c2")) return ["cat:" + a.getAttribute("data-c2")];
-      if (a.closest(".thumbs")) return ["gallery"];
+      if (a.closest(".thumbs") || a.closest(".lb")) return ["gallery"];
+      if (a.id === "burger") return ["menu"];
+      if (a.hasAttribute("data-dm")) return ["order_" + a.getAttribute("data-dm")];
+      if (a.closest(".buybar")) return [/wa\.me\//.test(h) ? "order_wa" : "order_bar"];
       if (a.classList.contains("card")) return ["toy_card", pidOf(h)];
       if (a.hasAttribute("hreflang")) return ["lang:" + a.getAttribute("hreflang")];
       if (/^tel:/.test(h)) return ["contact_phone"];

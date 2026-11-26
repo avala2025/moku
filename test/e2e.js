@@ -60,7 +60,7 @@ function client() {
     assert.ok(!r.t.includes("/a/panel.js"), "no admin panel for visitors");
     r = await anon("/en"); assert.ok(r.t.includes('lang="en"') && r.t.includes("Little Builder") && r.t.includes('href="/en/toy/toolbox"'), "English home");
     r = await anon("/toy/toolbox"); assert.equal(r.s, 200);
-    assert.ok(r.t.includes("<h1>ოსტატი</h1>") && r.t.includes("ოსტატი · ხის ხელსაწყოების ყუთი ბურღით · MOKU") && r.t.includes("3+ წელი") && r.t.includes("<li>✋ წვრილი მოტორიკა</li>") && r.t.includes('"@type":"Product"') && r.t.includes('"price":"89"') && r.t.includes('"priceCurrency":"GEL"'), "toy page with product data, name, subtitle, age, skills");
+    assert.ok(r.t.includes("<h1>ოსტატი</h1>") && r.t.includes("ოსტატი · ხის ხელსაწყოების ყუთი ბურღით · MOKU") && r.t.includes("3+ წელი") && r.t.includes("<li><i aria-hidden=\"true\">✋</i>წვრილი მოტორიკა</li>") && r.t.includes('"@type":"Product"') && r.t.includes('"price":"89"') && r.t.includes('"priceCurrency":"GEL"'), "toy page with product data, name, subtitle, age, skills");
     assert.ok(r.t.includes('og:image" content="') && r.t.includes("/img/toolbox-1.jpg"), "share image");
     assert.equal((await anon("/toy/nothing")).s, 404); assert.equal((await anon("/nowhere")).s, 404);
     r = await fetch(B + "/", { headers: { "accept-encoding": "gzip" } }); assert.equal(r.headers.get("content-encoding"), "gzip", "pages are compressed");

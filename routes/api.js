@@ -486,7 +486,7 @@ module.exports = function register(app) {
   }));
 
   // მაღაზიის შენახვა: თითო ნაწილი იცვლება მხოლოდ შესაბამისი უფლებით, დანარჩენი ძველი რჩება
-  const PRICE_T = ["stockIn", "stockLow", "stockOut", "top", "deliveryV", "s3", "n3t", "n3"]; // ფასების/მიწოდების ჩანართის ტექსტები
+  const PRICE_T = ["stockIn", "stockLow", "stockOut", "top", "deliveryV", "s3", "n3t", "n3", "pay", "payV", "ret", "retV"]; // ფასების/მიწოდების ჩანართის ტექსტები
   app.post("/api/shop", h(async (req, res) => {
     const u = await need(req, ...SITE), inc = req.body && req.body.data, cur = JSON.parse(JSON.stringify(await getShop()));
     if (!inc || typeof inc !== "object" || !inc.T || !Array.isArray(inc.products)) fail(400, "მონაცემები არასწორია");

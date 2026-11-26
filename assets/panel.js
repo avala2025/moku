@@ -30,10 +30,11 @@
     heroAlt: "მთავარი ფოტოს აღწერა (Google-ისთვის)", roomAlt: "ოთახის ფოტოს აღწერა (Google-ისთვის)",
     seoTitle: "Google: მთავარი გვერდის სათაური", seoDesc: "Google: მთავარი გვერდის აღწერა (150 სიმბოლომდე)", back: "ღილაკი: კოლექციაში დაბრუნება", similar: "სათამაშოს გვერდი: „კიდევ ნახე“", waBtn: "ღილაკი: WhatsApp-ით შეკვეთა",
     consentText: "თანხმობის ზოლის ტექსტი", consentOk: "თანხმობა: ღილაკი „კი“", consentNo: "თანხმობა: ღილაკი „არა“",
-    age: "სათამაშოს გვერდი: სიტყვა „ასაკი“", dev: "სათამაშოს გვერდი: „რას ავითარებს“", stockIn: "მარაგი: როცა ბევრია", stockLow: "მარაგი: როცა 1–3 ცალი დარჩა ({n} = რაოდენობა)", stockOut: "მარაგი: როცა ამოიწურა" };
+    age: "სათამაშოს გვერდი: სიტყვა „ასაკი“", dev: "სათამაშოს გვერდი: „რას ავითარებს“", stockIn: "მარაგი: როცა ბევრია", stockLow: "მარაგი: როცა 1–3 ცალი დარჩა ({n} = რაოდენობა)", stockOut: "მარაგი: როცა ამოიწურა",
+    pay: "სიტყვა „გადახდა“", payV: "გადახდის პირობები (ცარიელი = არ ჩანს)", ret: "სიტყვა „დაბრუნება“", retV: "დაბრუნების და გაცვლის პირობები (ცარიელი = არ ჩანს)", igBtn: "ღილაკი: Instagram-ზე მოწერა", fbBtn: "ღილაკი: Messenger-ში მოწერა", buyBtn: "ტელეფონის ქვედა ზოლი: შეკვეთის ღილაკი" };
   var can = function (k) { return PERMS.indexOf("site_" + k) >= 0; };
   var STOCK = ["stockIn", "stockLow", "stockOut"];
-  var DELIV = ["top", "deliveryV", "s3", "n3t", "n3"];
+  var DELIV = ["top", "deliveryV", "s3", "n3t", "n3", "pay", "payV", "ret", "retV"];
   var setPath = function (o, path, v) { var k = path.split("."), last = k.pop(); k.reduce(function (a, x) { return a[x]; }, o)[last] = v; };
   var getPath = function (o, path) { return path.split(".").reduce(function (a, x) { return a == null ? a : a[x]; }, o); };
   function inp(path, label, o) {
@@ -81,10 +82,10 @@
         '<h4>მარაგის წარწერა</h4><p class="a-note">სათამაშოს გვერდზე და ბარათზე ჩანს „მარაგშია“, „დარჩა 2 ცალი“ ან „ამოიწურა“. რაოდენობა ავტომატურად მოდის მარაგიდან (შეკვეთები და მარაგი → მარაგი). თუ სათამაშოს მარაგი ჩაწერილი არ არის, წარწერა არ ჩანს.</p>' +
         '<label class="f chkline" for="a-showstock"><span><input id="a-showstock" type="checkbox" data-bool="showStock" ' + (W.showStock !== false ? "checked" : "") + '> მარაგის წარწერა საიტზე ჩართულია</span></label>' +
         STOCK.map(function (k) { return pair(k); }).join("") +
-        "<h4>მიწოდება</h4>" + DELIV.map(function (k) { return pair(k, { area: 2 }); }).join("");
+        "<h4>მიწოდება, გადახდა, დაბრუნება</h4>" + DELIV.map(function (k) { return pair(k, { area: 2 }); }).join("");
     } else if (tab === "contact") {
-      B.innerHTML = '<p class="a-note">ცარიელი ველი საიტზე ჩანს როგორც „მალე დაემატება“. თუ WhatsApp-ს ჩაწერ, სათამაშოს გვერდზე გამოჩნდება ღილაკი „WhatsApp-ით შეკვეთა“.</p><div class="grid2">' +
-        inp("contacts.wa", "WhatsApp ნომერი (მაგ. +995 5XX XX XX XX)") + inp("contacts.ig", "Instagram (მაგ. @moku.ge)") + inp("contacts.phone", "ტელეფონი") + "</div>" +
+      B.innerHTML = '<p class="a-note">ცარიელი ველი საიტზე არ ჩანს. შევსებული კონტაქტები ჩნდება შეკვეთის სექციაში და გვერდის ბოლოში. WhatsApp-ის, Instagram-ის და Facebook-ის ჩაწერის შემდეგ სათამაშოს გვერდზე ჩნდება შესაბამისი ღილაკი მოსაწერად.</p><div class="grid2">' +
+        inp("contacts.wa", "WhatsApp ნომერი (მაგ. +995 5XX XX XX XX)") + inp("contacts.phone", "ტელეფონი") + inp("contacts.ig", "Instagram (სახელი ან ბმული, მაგ. @moku.ge)") + inp("contacts.fb", "Facebook (გვერდის ბმული ან სახელი)") + inp("contacts.tt", "TikTok (სახელი ან ბმული, მაგ. @moku.ge)") + "</div>" +
         '<h4>სტატისტიკა</h4><p class="a-note">ჩაირთვება მხოლოდ მაშინ, როცა მყიდველი თანხმობის ზოლზე „ვეთანხმები“-ს დააჭერს. ცარიელი ველი = გამორთულია.</p><div class="grid2">' +
         inp("analytics.ga", "Google Analytics (G-XXXXXXXXXX)") + inp("analytics.pixel", "Meta Pixel (მხოლოდ ციფრები)") + "</div>";
     } else {

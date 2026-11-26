@@ -3,6 +3,8 @@
  "contacts": {
   "wa": "",
   "ig": "",
+  "fb": "",
+  "tt": "",
   "phone": ""
  },
  "T": {
@@ -76,7 +78,14 @@
    "stockLow": "დარჩა {n} ცალი",
    "stockOut": "ამოიწურა",
    "age": "ასაკი",
-   "dev": "რას ავითარებს"
+   "dev": "რას ავითარებს",
+   "pay": "გადახდა",
+   "payV": "",
+   "ret": "დაბრუნება",
+   "retV": "",
+   "igBtn": "Instagram-ზე მოწერა",
+   "fbBtn": "Messenger-ში მოწერა",
+   "buyBtn": "შეკვეთა"
   },
   "en": {
    "top": "Opening offer −{d}% · Next-day delivery in Tbilisi, 7 ₾",
@@ -148,7 +157,14 @@
    "stockLow": "Only {n} left",
    "stockOut": "Sold out",
    "age": "Age",
-   "dev": "What it develops"
+   "dev": "What it develops",
+   "pay": "Payment",
+   "payV": "",
+   "ret": "Returns",
+   "retV": "",
+   "igBtn": "Message on Instagram",
+   "fbBtn": "Message on Messenger",
+   "buyBtn": "Order"
   }
  },
  "products": [
