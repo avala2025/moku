@@ -159,7 +159,7 @@
    "imgs": [
     [
      "toolbox-1",
-     1
+     0
     ],
     [
      "toolbox-2",
@@ -171,10 +171,6 @@
     ],
     [
      "toolbox-4",
-     0
-    ],
-    [
-     "toolbox-5",
      0
     ]
    ],
@@ -205,8 +201,8 @@
    "tint": "--mist",
    "imgs": [
     [
-     "music",
-     1
+     "music-1",
+     0
     ],
     [
      "music-2",
@@ -214,6 +210,10 @@
     ],
     [
      "music-3",
+     0
+    ],
+    [
+     "music-4",
      0
     ]
    ],
@@ -244,8 +244,8 @@
    "tint": "--birch",
    "imgs": [
     [
-     "train",
-     1
+     "train-1",
+     0
     ],
     [
      "train-2",
@@ -287,11 +287,19 @@
    "tint": "--birch",
    "imgs": [
     [
+     "walker-1",
+     0
+    ],
+    [
      "walker-2",
      0
     ],
     [
-     "walker",
+     "walker-3",
+     0
+    ],
+    [
+     "walker-4",
      0
     ]
    ],
@@ -322,11 +330,19 @@
    "tint": "--birch",
    "imgs": [
     [
-     "radio",
+     "radio-1",
      0
     ],
     [
      "radio-2",
+     0
+    ],
+    [
+     "radio-3",
+     0
+    ],
+    [
+     "radio-4",
      0
     ]
    ],
@@ -357,8 +373,8 @@
    "tint": "--blush",
    "imgs": [
     [
-     "vanity",
-     1
+     "vanity-1",
+     0
     ],
     [
      "vanity-2",
@@ -367,6 +383,10 @@
     [
      "vanity-3",
      0
+    ],
+    [
+     "vanity-4",
+     0
     ]
    ],
    "ka": [
@@ -374,7 +394,7 @@
     "ყველაფერი ისე, როგორც დედას აქვს, ოღონდ ხისგან. მაგიდაა სარკით, ფენით, სავარცხლით, სუნამოთი და ფრჩხილის ლაქით.",
     "ხე",
     "დაახლ. 30.5 × 21 × 21 სმ",
-    "ხის სატუალეტო მაგიდა სარკით და აქსესუარებით",
+    "ხის სარკიანი მაგიდა აქსესუარებით",
     "🎭 როლური თამაში · 💬 მეტყველება და ისტორიები · ✋ წვრილი მოტორიკა",
     "3+ წელი"
    ],
@@ -383,7 +403,7 @@
     "Everything just like mum's, only made of wood. A table with a mirror, a hairdryer, a comb, perfume and nail polish.",
     "Wood",
     "approx. 30.5 × 21 × 21 cm",
-    "Wooden vanity table with mirror and accessories",
+    "Wooden mirror table with accessories",
     "🎭 Pretend play · 💬 Language and storytelling · ✋ Fine motor skills",
     "3+ years"
    ],
@@ -396,8 +416,8 @@
    "tint": "--sage",
    "imgs": [
     [
-     "vet",
-     1
+     "vet-1",
+     0
     ],
     [
      "vet-2",
@@ -405,6 +425,10 @@
     ],
     [
      "vet-3",
+     0
+    ],
+    [
+     "vet-4",
      0
     ]
    ],
@@ -435,8 +459,8 @@
    "tint": "--birch",
    "imgs": [
     [
-     "table",
-     1
+     "table-1",
+     0
     ],
     [
      "table-2",
@@ -444,6 +468,10 @@
     ],
     [
      "table-3",
+     0
+    ],
+    [
+     "table-4",
      0
     ]
    ],
@@ -474,8 +502,8 @@
    "tint": "--blush",
    "imgs": [
     [
-     "tap",
-     1
+     "tap-1",
+     0
     ],
     [
      "tap-2",
@@ -517,11 +545,11 @@
    "tint": "--birch",
    "imgs": [
     [
-     "driver-2",
-     1
+     "driver-1",
+     0
     ],
     [
-     "driver",
+     "driver-2",
      0
     ],
     [
