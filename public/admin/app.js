@@ -9,7 +9,7 @@ const MON = ["იანვარი", "თებერვალი", "მარ�
 const day = d => { const x = new Date(d + "T12:00:00"); return isNaN(x) ? d : `${WD[x.getDay()]}, ${x.getDate()} ${MON[x.getMonth()]}`; };
 const ST = { new: "კურიერი არ არის დანიშნული", assigned: "კურიერი დანიშნულია", picked: "კურიერმა აიღო", problem: "ვერ ჩაბარდა", delivered: "ჩაბარებული", returned: "დაბრუნდა", cancelled: "გაუქმდა" };
 const ROLE = { admin: "ადმინი", sales: "გაყიდვები", courier: "კურიერი" };
-const ZONE = { tbilisi: ["თბილისი", 7], region: ["რეგიონი", 15], pickup: ["თვითგატანა", 0] };
+const ZONE = { tbilisi: ["თბილისი", 0], region: ["რეგიონი", 10], pickup: ["თვითგატანა", 0] };
 const KIND = { order_created: "მყიდველს: შეკვეთა გაფორმდა", courier_assigned: "კურიერს: წასაღები შეკვეთა", picked: "მყიდველს: კურიერმა აიღო",
   pw_reset: "თანამშრომელს: პაროლის აღდგენის ბმული", pw_changed: "თანამშრომელს: პაროლი შეიცვალა", email_changed: "თანამშრომელს: მეილი შეიცვალა", welcome: "თანამშრომელს: ახალი ანგარიში" };
 const MST = { sent: "გაიგზავნა", failed: "ვერ გაიგზავნა", skipped: "გამოტოვებულია", sending: "იგზავნება" };
@@ -80,7 +80,7 @@ async function act(path, data, okMsg) {
   try { const j = await api(path, data || {}); if (j.out) { S = null; draw(); return true; } if (j.me) S = j; say(okMsg || "", true); force = true; draw(); return true; }
   catch (e) { say(e.message); return false; } finally { busy = false; }
 }
-const blank = () => { const p = S.products.find(p => p.left > 0) || S.products[0]; return { customer: "", phone: "", email: "", address: "", zone: "tbilisi", fee: 7, note: "", delivery_date: S.tomorrow, courier_id: S.couriers[0]?.id || "", items: [{ product_id: p?.id || "", qty: 1, price: p?.price || 0 }] }; };
+const blank = () => { const p = S.products.find(p => p.left > 0) || S.products[0]; return { customer: "", phone: "", email: "", address: "", zone: "tbilisi", fee: 0, note: "", delivery_date: S.tomorrow, courier_id: S.couriers[0]?.id || "", items: [{ product_id: p?.id || "", qty: 1, price: p?.price || 0 }] }; };
 
 function draw() {
   const a = document.activeElement;
@@ -188,7 +188,7 @@ function newOrder() {
     <label for="f-customer">მყიდველის სახელი<input id="f-customer" data-f="customer" value="${esc(F.customer)}" required></label>
     <label for="f-email">მყიდველის მეილი (წერილებისთვის)<input id="f-email" data-f="email" type="email" value="${esc(F.email)}"></label>
     <label for="f-date">მიტანის დღე<input id="f-date" data-f="delivery_date" type="date" value="${esc(F.delivery_date)}" required></label>
-    <label for="f-zone">მიწოდება<select id="f-zone" data-f="zone">${Object.entries(ZONE).map(([k, v]) => `<option value="${k}" ${k === F.zone ? "selected" : ""}>${v[0]} · ${v[1]} ₾</option>`).join("")}</select></label>
+    <label for="f-zone">მიწოდება<select id="f-zone" data-f="zone">${Object.entries(ZONE).map(([k, v]) => `<option value="${k}" ${k === F.zone ? "selected" : ""}>${v[0]} · ${v[1] ? v[1] + " ₾" : "უფასო"}</option>`).join("")}</select></label>
     <label for="f-fee">მიწოდების ფასი, ₾<input id="f-fee" data-f="fee" type="number" min="0" value="${esc(F.fee)}" ${lock}></label></div>
     <label for="f-address">მისამართი<input id="f-address" data-f="address" value="${esc(F.address)}"></label>
     ${F.items.map((it, k) => `<div class="irow"><span class="th">${(S.products.find(p => p.id == it.product_id) || {}).img ? `<img src="${img(S.products.find(p => p.id == it.product_id).img)}" alt="">` : ""}</span>

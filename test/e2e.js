@@ -109,7 +109,7 @@ function client() {
     assert.equal(r.s, 200, r.t); const oid = r.j.orders[0].id; assert.equal(r.j.orders[0].status, "assigned"); assert.equal(r.j.products[0].left, 1);
     await wait(500);
     assert.deepEqual(om().map((m) => m.to).sort(), ["levan@moku.ge", "mari@example.com"]);
-    const cm = om().find((m) => m.to === "mari@example.com"); assert.ok(cm.body.includes("294 ₾") && cm.subject.includes("გაფორმებულია"), "customer mail: total 2×89+109+7");
+    const cm = om().find((m) => m.to === "mari@example.com"); assert.ok(cm.body.includes("287 ₾") && cm.subject.includes("გაფორმებულია"), "customer mail: total 2×89+109, delivery free");
     assert.ok(om().find((m) => m.to === "levan@moku.ge").body.includes("https://moku.ge/admin"), "courier mail links to the profile");
 
     assert.equal((await sales2("/api/state")).j.orders.length, 0, "other seller does not see it");
@@ -118,7 +118,7 @@ function client() {
     
     r = await c2("/api/state"); assert.equal(r.j.deliveries.length, 0, "other courier sees nothing"); assert.ok(!r.j.products && !r.j.users && !r.j.orders);
     assert.equal((await c2(`/api/orders/${oid}/pick`, {})).s, 404, "other courier cannot act");
-    r = await c1("/api/state"); assert.equal(r.j.deliveries.length, 1); assert.equal(r.j.deliveries[0].collect, 294);
+    r = await c1("/api/state"); assert.equal(r.j.deliveries.length, 1); assert.equal(r.j.deliveries[0].collect, 287);
     assert.ok(r.j.deliveries[0].items[0].price === undefined && r.j.deliveries[0].email === undefined, "courier sees no prices and no customer e-mail");
     assert.equal((await c1(`/api/orders/${oid}/deliver`, {})).s, 400, "cannot deliver before pick-up");
     assert.equal((await c1(`/api/orders/${oid}/pick`, {})).s, 200); await wait(400);
@@ -204,7 +204,7 @@ function client() {
     // გამყიდველი ფასის უფლების გარეშე: ფასი ყოველთვის საიტის ფასია
     await admin("/api/stock/receive", { items: [{ id: "radio", qty: 20 }, { id: "tap", qty: 5 }], note: "პარტია 1" });
     r = await sales2("/api/orders", { customer: "ანა", phone: "577000111", items: [{ product_id: "radio", qty: 1, price: 1 }], fee: 0 });
-    let ord = r.j.orders[0]; assert.equal(ord.items[0].price, 45, "price forced to site price (90 −50%)"); assert.equal(ord.fee, 7, "fee forced to zone fee");
+    let ord = r.j.orders[0]; assert.equal(ord.items[0].price, 45, "price forced to site price (90 −50%)"); assert.equal(ord.fee, 0, "fee forced to zone fee");
     // შესწორება: გიოს არ აქვს orders_edit
     assert.equal((await sales2(`/api/orders/${ord.id}/edit`, { customer: "ანა", phone: "577000111", items: [{ product_id: "radio", qty: 2 }] })).s, 403);
     await admin(`/api/users/${gioId}`, { perms: ["order_create", "orders_edit", "stock_view"] });
